@@ -1,78 +1,22 @@
-# Created by Grace Li & Kamryn Ohly
-# import http.server
-# import socketserver
-
-# # Set up server
-# # NOTE: check about hard-coding PORT for sanity reasons later
-# PORT = 8000
-# Handler = http.server.SimpleHTTPRequestHandler
-
-# with socketserver.TCPServer(("", PORT), Handler) as httpd:
-#     print("Serving at port", PORT)
-#     httpd.serve_forever()
-
-# # todo: create set of active connection
-
-# # todo: type hint this (and all) function
-# def accept_connections():
-#     pass
-
-# def service_connections():
-#     pass 
-
-
-# import socket
-
-# # Create a socket object
-# server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# # Get the hostname of the machine
-# hostname = socket.gethostname()
-
-# # Get the IP address corresponding to the hostname
-# IP_address = socket.gethostbyname(hostname)
-
-# # Define the port on which the server will listen for connections
-# port = 5000
-
-# # Bind the socket to the IP address and port
-# server_socket.bind((IP_address, port))
-
-# # Listen for incoming connections (maximum of 5)
-# server_socket.listen(5)
-
-# print(f"Server listening on {IP_address}:{port}")
-
-# while True:
-#     # Accept a connection from a client
-#     client_socket, client_address = server_socket.accept()
-#     print(f"Connection from {client_address}")
-
-#     # Receive data from the client
-#     data = client_socket.recv(1024)
-#     print(f"Received: {data.decode()}")
-
-#     # Send a response to the client
-#     message = "Hello from the server!"
-#     client_socket.send(message.encode())
-
-#     # Close the client socket
-#     client_socket.close()
-
-
-# From Lecture
-
 import socket
 import selectors
 import types
+from http.server import HTTPServer
+import threading
+from auth_handler import AuthServer
 
 selector = selectors.DefaultSelector()
 
 hostname = socket.gethostname()
 HOST = socket.gethostbyname(hostname) 
+PORT = 5001 # todo: check about if this is allowed!!
+HTTP_PORT = 5002
 
-PORT = 5000 # todo: check about if this is allowed!!
-
+# run HTTP server
+def run_http_server():
+    http_server = HTTPServer((HOST, HTTP_PORT), AuthServer)
+    print(f"Starting HTTP server on {HOST}:{HTTP_PORT}")
+    http_server.serve_forever()
 
 def accept_connection(sock):
     conn, addr = sock.accept()
@@ -95,12 +39,16 @@ def service_connection(key, mask):
             sock.close()
     if mask & selectors.EVENT_WRITE:
         if data.outb:
+            print(f"{key}:{mask}")
             return_data = "data!!"
             return_data = return_data.encode("utf-8")
             sent = sock.send(return_data)
             data.outb = data.outb[sent:]
 
 if __name__ == "__main__":
+    # Start HTTP server in a separate thread
+    http_thread = threading.Thread(target=run_http_server, daemon=True)
+    http_thread.start()
     # AF_INET defines the address family (ex. IPv4)
     # SOCK_STREAM defines socket type (ex. TCP)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
