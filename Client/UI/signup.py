@@ -4,6 +4,10 @@ import re
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
+
+# TODO: HANDLE FAILED CONNECTIONS (NO RETURN)
+# TODO: add a config file for the security + port 
+
 class LoginClient:
     def __init__(self, base_url='http://localhost:5002'):
         self.base_url = base_url

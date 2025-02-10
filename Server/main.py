@@ -5,8 +5,11 @@ from http.server import HTTPServer
 import threading
 from auth_handler import AuthServer
 
-selector = selectors.DefaultSelector()
+# todo: bot up with ipp address as command line argument 
+# todo: cooked can we use HTTO oor auth?
 
+
+selector = selectors.DefaultSelector()
 hostname = socket.gethostname()
 HOST = socket.gethostbyname(hostname) 
 PORT = 5001 # todo: check about if this is allowed!!
