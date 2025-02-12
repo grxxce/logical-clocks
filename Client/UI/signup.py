@@ -8,6 +8,10 @@ from urllib.error import URLError, HTTPError
 # TODO: HANDLE FAILED CONNECTIONS (NO RETURN)
 # TODO: add a config file for the security + port 
 
+# Add config file for versioning too!
+version = 1
+
+
 class LoginClient:
     def __init__(self, base_url='http://localhost:5002'):
         self.base_url = base_url
@@ -87,8 +91,28 @@ class LoginClient:
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(pattern, email) is not None
 
+    # def send_request(self, message):
+    #     """Send HTTP request to server using custom protocol."""
+    #     try:
+    #         print("length", str(len(message)))
+    #         headers = {
+    #             'Content-Type': 'text/plain',
+    #             'Content-Length': str(len(message))
+    #         }
+            
+    #         req = Request(self.base_url, message.encode('utf-8'), headers, method='POST')
+            
+    #         with urlopen(req) as response:
+    #             return response.read().decode('utf-8')
+                
+    #     except HTTPError as e:
+    #         return f"ERROR§HTTP Error: {str(e)}"
+    #     except URLError as e:
+    #         return "ERROR§Could not connect to server"
+    #     except Exception as e:
+    #         return f"ERROR§{str(e)}"
+
     def send_request(self, message):
-        """Send HTTP request to server using custom protocol."""
         try:
             print("length", str(len(message)))
             headers = {
@@ -106,7 +130,7 @@ class LoginClient:
         except URLError as e:
             return "ERROR§Could not connect to server"
         except Exception as e:
-            return f"ERROR§{str(e)}"
+            return f"ERROR§{str(e)}"        
 
     def login(self):
         """Handle login button click."""
