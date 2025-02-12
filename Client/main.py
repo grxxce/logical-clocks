@@ -5,16 +5,17 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 import threading
-
+import argparse
 # Add config file for versioning too!
 version = 1
 
 class Client:
-    def __init__(self, base_url='http://localhost:5002'):
+    def __init__(self,host, port):
+        self.host = host
+        self.port = port
         self.connectedWithServer = False
         self.socketConnection = None
-        self.base_url = base_url
-        self.running = True # flag to control socket thread
+        self.running = True
         
         # Create root window
         self.root = tk.Tk()
@@ -111,11 +112,7 @@ class Client:
         try: 
             print("Starting socket connection")
             self.socketConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # TODO: dont' hardcode this
-            PORT = 5001
-            hostname = socket.gethostname()
-            HOST = socket.gethostbyname(hostname) 
-            server_address = (HOST, PORT)
+            server_address = (self.host, self.port)
             print("server address: ", server_address)
 
             # Connect to the server
@@ -143,33 +140,56 @@ class Client:
     
     def handle_server_response(self, data):
         """Handle different types of server responses."""
-        parts = data.split('§')
-        if parts[2] == "LOGIN_SUCCESS":
-            # Switch to chat UI on the main thread
-            username = parts[4]
-            print("username supposed", username)
-            all_users = parts[6:]  # Store all users for searching
-            print(f"Logged in as: {username}")
-            print(f"Available users: {all_users}")
-            
-            # Switch to chat UI and pass all users
-            self.root.after(0, lambda: self.show_chat_ui(username, all_users))
-        
-        elif parts[2] == "SEND_MESSAGE":
-            # Display chat message
-            if hasattr(self, 'chat_ui'):
-                self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
-        
-        elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
-            messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
-            self.show_login_ui()
+        messages = [msg for msg in data.split('∞') if msg.strip()]
 
-        elif parts[2] == "NEW_MESSAGE":
-            # Handle received message
-            if hasattr(self, 'chat_ui'):
-                sender = parts[3]
-                message = parts[5]
-                self.root.after(0, lambda: self.chat_ui.display_message(sender, message))
+        for message in messages:
+            parts = message.split('§')
+            if parts[2] == "LOGIN_SUCCESS":
+                username = parts[4]
+                all_users = parts[6:]  # Get users list
+                print(f"Logged in as: {username}")
+                print(f"Available users: {all_users}")
+                
+                # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
+                # Create chat UI synchronously
+                self.show_chat_ui(username, all_users)
+                # Let the UI update
+                self.root.update()
+                break  # Exit after handling login
+            
+        print("messages", messages)
+        for message in messages:    
+            parts = message.split('§')
+            # if parts[2] == "LOGIN_SUCCESS":
+            #     # Switch to chat UI on the main thread
+            #     username = parts[4]
+            #     all_users = parts[6:]  # Store all users for searching
+            #     print(f"Logged in as: {username}")
+            #     print(f"Available users: {all_users}")
+                
+            #     # Switch to chat UI and pass all users
+            #     self.root.after(0, lambda: self.show_chat_ui(username, all_users))
+        
+            if parts[2] == "SEND_MESSAGE":
+                # Display chat message
+                if hasattr(self, 'chat_ui'):
+                    self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
+            
+            elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
+                messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
+                self.show_login_ui()
+
+            elif parts[2] == "NEW_MESSAGE":
+                    print("Received new message:", parts)
+                    print("Has chat UI:", hasattr(self, 'chat_ui'))
+                    
+                    if hasattr(self, 'chat_ui'):
+                        sender = parts[3]
+                        message = parts[5]
+                        self.root.after(0, lambda s=sender, m=message: 
+                            self.chat_ui.display_message(s, m))
+                    else:
+                        print("Warning: Message received before chat UI was ready")
         
     # Socket Connections & Management
     def send_request(self, message):
@@ -196,6 +216,34 @@ class Client:
                 self.socketConnection.close()
 
 
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Chat Client')
+    
+    # Add arguments
+    parser.add_argument(
+        '--host',
+        default='localhost',
+        help='Server hostname or IP (default: localhost)'
+    )
+    
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=5001,
+        help='Server port (default: 5001)'
+    )
+    
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    client = Client()
-    client.run()
+    # Parse command line arguments
+    args = parse_arguments()
+    
+    # Create and run client
+    try:
+        client = Client(host=args.host, port=args.port)
+        client.run()
+    except Exception as e:
+        print(f"Error starting client: {e}")

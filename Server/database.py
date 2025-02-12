@@ -14,7 +14,7 @@ class DatabaseManager:
                 usernames = []
                 for row in results:
                     usernames.append(row[0])
-                print(usernames)
+                print("found these users:",usernames)
                 return usernames
         # except sqlite3.IntegrityError:
         #     return "ERROR§Username already exists"

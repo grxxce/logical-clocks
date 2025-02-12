@@ -176,11 +176,13 @@ class ChatUI:
         self.chat_display.see(tk.END)
     
     def display_message(self, from_user, message):
-        """Display a received message in the chat area."""
+        """Updates chat history (but does not display messages)"""
+        print("display_message: ", from_user, message)
         timestamp = datetime.now().strftime('%H:%M')
         
         # Store message in chat history
         if from_user not in self.chat_histories:
+            print("from_user not in chat_histories")
             self.chat_histories[from_user] = []
         
         self.chat_histories[from_user].append({
@@ -188,13 +190,8 @@ class ChatUI:
             'message': message,
             'timestamp': timestamp
         })
-        
-        # If this is the current chat, display the message
-        if from_user == self.selected_recipient:
-            self.chat_display.configure(state='normal')
-            self._format_received_message(from_user, message, timestamp)
-            self.chat_display.configure(state='disabled')
-            self.chat_display.see(tk.END)
+
+        print("chat_histories", self.chat_histories)
 
     def display_sent_message(self, message):
         """Display a sent message in the chat area."""
@@ -271,6 +268,7 @@ class ChatUI:
     
     def _on_user_select(self, event):
         """Handle user selection from search results"""
+        print("SELECTED USER DETECTED")
         selection = self.search_results.curselection()
         if selection:
             self.selected_recipient = self.search_results.get(selection[0])
@@ -278,6 +276,40 @@ class ChatUI:
             self.chat_display.delete(1.0, tk.END)
             self.chat_display.configure(state='disabled')
             self.chat_frame.configure(text=f"Chat with {self.selected_recipient}")
+            self.display_stored_messages()
+    
+    def display_stored_messages(self):
+        """Display all stored messages for the selected recipient."""
+        print(f"Displaying stored messages for recipient: {self.selected_recipient}")
+        
+        if not self.selected_recipient:
+            print("No recipient selected, cannot display messages")
+            return
+            
+        if self.selected_recipient not in self.chat_histories:
+            print(f"No chat history for {self.selected_recipient}")
+            return
+            
+        # Clear current display
+        self.chat_display.configure(state='normal')
+        self.chat_display.delete(1.0, tk.END)
+        
+        # Display all messages in chronological order
+        for msg in self.chat_histories[self.selected_recipient]:
+            sender = msg['sender']
+            message = msg['message']
+            timestamp = msg['timestamp']
+            
+            if sender == self.username:
+                self._format_sent_message(message, timestamp)
+            else:
+                self._format_received_message(sender, message, timestamp)
+        
+        self.chat_display.configure(state='disabled')
+        self.chat_display.see(tk.END)
+        
+        print(f"Finished displaying {len(self.chat_histories[self.selected_recipient])} messages")
+
     
     def _on_inbox_select(self, event):
         """Handle inbox conversation selection"""
@@ -293,13 +325,6 @@ class ChatUI:
         self.inbox_list.delete(0, tk.END)
         for conv in conversations:
             self.inbox_list.insert(tk.END, conv)
-    
-    def display_message(self, from_user, message):
-        """Display a message in the chat area"""
-        self.chat_display.configure(state='normal')
-        self.chat_display.insert(tk.END, f"{from_user}: {message}\n")
-        self.chat_display.configure(state='disabled')
-        self.chat_display.see(tk.END)
     
     def update_search_results(self, users):
         """Update the search results listbox"""

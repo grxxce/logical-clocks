@@ -62,7 +62,7 @@ class ClientRequest:
         operation_specific = f"{op_code}"
         for arg in arguments:
             operation_specific += f"§{arg}"
-        return f"{version}§{len(operation_specific)}§{operation_specific}"
+        return f"{version}§{len(operation_specific)}§{operation_specific}∞"
 
     # TODO: see if this works!
     @staticmethod

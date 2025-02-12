@@ -89,6 +89,17 @@ def service_connection(key, mask):
             handle_client_requests(sock, data)
         else:
             print(f"Closing connection to {data.addr}")
+            username = None
+            for user, client_sock in active_connections.items():
+                if client_sock == sock:
+                    username = user
+                    break
+            
+            # Remove from active_connections if found
+            if username:
+                print(f"Removing active connection for user: {username}")
+                active_connections.pop(username)
+            
             selector.unregister(sock)
             sock.close()
     # TODO: Can we delete this?
@@ -122,20 +133,29 @@ def handle_client_requests(sock, data):
         opcode = request.opcode
         arguments = request.arguments
         # Verify parsing.
-        print(f"Verify parsed request with OPCODE {opcode}: {request}")
+        print(f"Verify parsed request with OPCODE {opcode}: {arguments}")
 
         # Considering the given operation desired, respond accordingly.
         # Call out to helper functionalities & operation-handy code.
         match opcode:         
             case "REGISTER":
                 response = register(*arguments)
+            
             case "LOGIN":
                 response = login(*arguments)
                 # Ensure that we add this connection to our currently active
                 # connections.
-                # TODO: "if contains the word SUCCESS?"
-                active_connections[arguments[0]] = sock
-                check_pending_messages(arguments[0])
+                
+                # Send success immediately
+                if response.split("§")[2] == "LOGIN_SUCCESS":
+                    data.outb = response.encode("utf-8")
+                    sent = sock.send(data.outb)             # Send the response over the wire.
+                    data.outb = data.outb[sent:] 
+                    
+                    active_connections[arguments[0]] = sock
+                    check_pending_messages(arguments[0])
+                    response = ""
+            
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
             case "DELETE_MESSAGE":
@@ -195,11 +215,12 @@ def send_message(sender, recipient, message):
         # not online!
         # Add to a list of pending messages, so that when the user 
         # comes back online that they will receive their messages.
-        print("pending messages append")
+        print("pending messages append: ", request)
         pending_messages[recipient].append(request)
+        print("updated pending messages", pending_messages)
         # To ensure no failures occur!
         message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
-        request2 = f"{VERSION}§{len(message_status)}§{message_status}"
+        request2 = f"{VERSION}§{len(message_status)}§{message_status}∞"
         return request2
 
 
@@ -210,6 +231,7 @@ def check_pending_messages(username):
         # Send over all of the pending messages to the client.
         try:
             for message in pending_messages[username]:
+                print("found a pending message", message)
                 active_connections[username].send(message.encode("utf-8"))
             pending_messages[username] = []
         except: 
