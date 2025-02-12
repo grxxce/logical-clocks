@@ -1,20 +1,25 @@
 import socket
 import selectors
 import types
-from service_connection import handle_client_response
+from service_actions import register, login, delete_account, delete_message, update_notification_limit, parse_request
 
 # todo: bot up with ipp address as command line argument 
 # todo: cooked can we use HTTO oor auth?
 
+# Constants & State Tracking
 selector = selectors.DefaultSelector()
 hostname = socket.gethostname()
 HOST = socket.gethostbyname(hostname) 
 PORT = 5001 # todo: check about if this is allowed!!
 HTTP_PORT = 5002
+version = 1
 
+
+# Keep track of the currently connected clients.
 active_connections = {}
 
 def accept_connection(sock):
+    """Add documentation soon!"""
     conn, addr = sock.accept()
     print(f"Accepted connection from {addr}")
     conn.setblocking(False)
@@ -23,10 +28,12 @@ def accept_connection(sock):
     # Register a handler essentially?
     selector.register(conn, events, data=data)
     active_connections[addr] = conn
+    print("active connections", active_connections)
 
 
 # Handle service requests
 def service_connection(key, mask):
+    """Add documentation soon"""
     sock = key.fileobj
     data = key.data
     # Data received from the client
@@ -52,9 +59,65 @@ def service_connection(key, mask):
             something = 0
 
 
-def send_message():
-    # send to recipient
-    print("to be implemented")
+
+# Dealing with one client <-> server relationship at a time!
+# Main point of contact with main.py
+def handle_client_response(sock, data):
+    print("handle_client_response")
+    print(data.outb)
+    # Decipher message as a Message object.
+    try:
+        request = parse_request(data)
+        opcode = request.opcode
+        arguments = request.arguments
+
+        match opcode:                
+            case "REGISTER":
+                response = register(*arguments)
+                print("register called & did stuff", response)
+            case "LOGIN":
+                response = login(*arguments)
+                print(f"login: {response}")
+            case "SEND_MESSAGE":
+                response = send_message(*arguments)
+                # response = ""
+            case "DELETE_MESSAGE":
+                response = delete_message(*arguments)
+            case "DELETE_ACCOUNT":
+                response = delete_account(*arguments)
+            case "NOTIFICATION_LIMIT":
+                response = update_notification_limit(*arguments)
+            case _:
+                response = "Nothing to do."
+
+        print("Response:", response)
+        # print(f"Finished parsing request with response: {response}")
+        # take response & handle it / serialize it
+        response = response.encode("utf-8")
+        sent = sock.send(response)
+        data.outb = data.outb[sent:]
+        print("response sent!")
+    except:
+        print(f"handling_client_reponse: error handling data {data}")
+
+def send_message(curr_connections, sender, recipient, message):
+    # Case 1: Recipient is online.
+    #       Then, send the message immediately.
+    # 
+    # Case 2: The recipient is not online.
+    #       Then, wait until they are back to check.
+    if recipient in curr_connections.keys():
+        # They are online, so send the message
+        message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
+        request = f"{version}§{len(message_request)}§{message_request}"
+        curr_connections[recipient].send(request.encode("utf-8"))
+    else:
+        # not online!
+        print("to be done")
+
+# def send_message():
+#     # send to recipient
+#     print("to be implemented")
 
 
 if __name__ == "__main__":
