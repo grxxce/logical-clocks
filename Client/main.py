@@ -154,13 +154,22 @@ class Client:
             
             # Switch to chat UI and pass all users
             self.root.after(0, lambda: self.show_chat_ui(username, all_users))
+        
         elif parts[2] == "SEND_MESSAGE":
             # Display chat message
             if hasattr(self, 'chat_ui'):
                 self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
+        
         elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
             messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
             self.show_login_ui()
+
+        elif parts[2] == "NEW_MESSAGE":
+            # Handle received message
+            if hasattr(self, 'chat_ui'):
+                sender = parts[3]
+                message = parts[5]
+                self.root.after(0, lambda: self.chat_ui.display_message(sender, message))
         
     # Socket Connections & Management
     def send_request(self, message):
@@ -170,9 +179,8 @@ class Client:
             
             # If established successfully, then send request
             print("sending_request sending: ", message.encode())
+            # self.socketConnection.send(message.encode('utf-8'))
             self.socketConnection.send(message.encode('utf-8'))
-            # sent = self.socketConnection.send(message.encode('utf-8'))
-            # data.outb = data.outb[sent:]
         
         except:
             print("Exception in send_request")

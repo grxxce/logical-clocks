@@ -1,11 +1,14 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
-
+from datetime import datetime
 class ChatUI:
     def __init__(self, root, callbacks, username, all_users):
         self.root = root
         self.username = username
         self.all_users = all_users
+
+        self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
+        self.selected_recipient = None
         
         # Store callbacks
         self.send_message_callback = callbacks.get('send_message')
@@ -115,6 +118,18 @@ class ChatUI:
         )
         self.chat_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
+        # Configure tags for message styling
+        self.chat_display.tag_configure(
+            'sent',
+            justify='right',
+            foreground='#0084ff'
+        )
+        self.chat_display.tag_configure(
+            'received',
+            justify='left',
+            foreground='#000000'
+        )
+
         # Message input area
         self.input_frame = ttk.Frame(self.chat_frame)
         self.input_frame.pack(fill=tk.X)
@@ -132,17 +147,111 @@ class ChatUI:
             command=self._handle_send
         )
         self.send_button.pack(side=tk.RIGHT)
+
+    def _start_chat_with_user(self, username):
+        """Start or switch to chat with selected user"""
+        self.selected_recipient = username
+        self.chat_frame.configure(text=f"Chat with {username}")
         
+        # Initialize chat history for new users
+        if username not in self.chat_histories:
+            self.chat_histories[username] = []
+            
+        # Display chat history
+        self._display_chat_history(username)
+    
+    def _display_chat_history(self, username):
+        """Display the chat history for a specific user"""
+        self.chat_display.configure(state='normal')
+        self.chat_display.delete(1.0, tk.END)
+        
+        # Display each message in the history
+        for msg in self.chat_histories[username]:
+            if msg['sender'] == self.username:
+                self._format_sent_message(msg['message'], msg['timestamp'])
+            else:
+                self._format_received_message(msg['sender'], msg['message'], msg['timestamp'])
+        
+        self.chat_display.configure(state='disabled')
+        self.chat_display.see(tk.END)
+    
+    def display_message(self, from_user, message):
+        """Display a received message in the chat area."""
+        timestamp = datetime.now().strftime('%H:%M')
+        
+        # Store message in chat history
+        if from_user not in self.chat_histories:
+            self.chat_histories[from_user] = []
+        
+        self.chat_histories[from_user].append({
+            'sender': from_user,
+            'message': message,
+            'timestamp': timestamp
+        })
+        
+        # If this is the current chat, display the message
+        if from_user == self.selected_recipient:
+            self.chat_display.configure(state='normal')
+            self._format_received_message(from_user, message, timestamp)
+            self.chat_display.configure(state='disabled')
+            self.chat_display.see(tk.END)
+
+    def display_sent_message(self, message):
+        """Display a sent message in the chat area."""
+        self.chat_display.configure(state='normal')
+        
+        # Add timestamp
+        timestamp = datetime.now().strftime('%H:%M')
+        
+        # Format and insert the message
+        self.chat_display.insert(tk.END, f"{timestamp} You: ", 'sent')
+        self.chat_display.insert(tk.END, f"{message}\n", 'sent')
+        
+        self.chat_display.configure(state='disabled')
+        self.chat_display.see(tk.END)  # Auto-scroll to bottom
+
     def _handle_send(self):
         """Handle sending a message"""
-        print("_handle_send is sending message")
+        if not hasattr(self, 'selected_recipient') or not self.selected_recipient:
+            messagebox.showwarning("Warning", "Please select a user to chat with first.")
+            return
+            
         message = self.message_input.get().strip()
-
-        # Checks if recipient is set
-        if message and hasattr(self, 'selected_recipient'):
-            print("sending:", self.selected_recipient, message)
+        if message:
+            # Send message through callback
             self.send_message_callback(self.selected_recipient, message)
+            
+            # Store and display sent message
+            timestamp = datetime.now().strftime('%H:%M')
+            
+            # Add to chat history
+            if self.selected_recipient not in self.chat_histories:
+                self.chat_histories[self.selected_recipient] = []
+                
+            self.chat_histories[self.selected_recipient].append({
+                'sender': self.username,
+                'message': message,
+                'timestamp': timestamp
+            })
+            
+            # Display sent message
+            self.chat_display.configure(state='normal')
+            self._format_sent_message(message, timestamp)
+            self.chat_display.configure(state='disabled')
+            self.chat_display.see(tk.END)
+            
+            # Clear input
             self.message_input.delete(0, tk.END)
+    def _format_sent_message(self, message, timestamp):
+        """Format and display a sent message"""
+        self.chat_display.insert(tk.END, f"{timestamp} You: ", 'sent')
+        self.chat_display.insert(tk.END, f"{message}\n", 'sent')
+
+    def _format_received_message(self, sender, message, timestamp):
+        """Format and display a received message"""
+        self.chat_display.insert(tk.END, f"{timestamp} {sender}: ", 'received')
+        self.chat_display.insert(tk.END, f"{message}\n", 'received')
+
     
     def _on_search_change(self, *args):
         """Handle search input changes"""

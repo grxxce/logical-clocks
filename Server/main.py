@@ -104,6 +104,7 @@ def handle_client_response(sock, data):
         print(f"handling_client_reponse: error handling data {data}")
 
 def send_message(sender, recipient, message):
+    print("attempting to send message", sender, recipient, message)
     # Case 1: Recipient is online.
     #       Then, send the message immediately.
     # 
@@ -115,7 +116,10 @@ def send_message(sender, recipient, message):
         message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
         request = f"{version}§{len(message_request)}§{message_request}"
         active_connections[recipient].send(request.encode("utf-8"))
-        print("sent!")
+        
+        message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
+        request2 = f"{version}§{len(message_status)}§{message_status}"
+        return request2
     else:
         # not online!
         print("to be done")
