@@ -39,7 +39,8 @@ class AuthHandler:
                     (username, password_hash, email)
                 )
                 conn.commit()
-                return "SUCCESS§Registration successful"
+                return True
+                # return "SUCCESS§Registration successful"
         except sqlite3.IntegrityError:
             return "ERROR§Username already exists"
         except Exception as e:

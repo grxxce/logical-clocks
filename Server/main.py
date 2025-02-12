@@ -2,15 +2,9 @@ import socket
 import selectors
 import types
 from service_connection import handle_client_response
-# from http.server import HTTPServer
-# import threading
-# from auth_handler import AuthServer
-# from auth_handler import AuthHandler
-
 
 # todo: bot up with ipp address as command line argument 
 # todo: cooked can we use HTTO oor auth?
-
 
 selector = selectors.DefaultSelector()
 hostname = socket.gethostname()
@@ -18,21 +12,17 @@ HOST = socket.gethostbyname(hostname)
 PORT = 5001 # todo: check about if this is allowed!!
 HTTP_PORT = 5002
 
-# run HTTP server
-# def run_http_server():
-#     http_server = HTTPServer((HOST, HTTP_PORT), AuthServer)
-#     print(f"Starting HTTP server on {HOST}:{HTTP_PORT}")
-#     http_server.serve_forever()
+active_connections = {}
 
 def accept_connection(sock):
     conn, addr = sock.accept()
     print(f"Accepted connection from {addr}")
     conn.setblocking(False)
-    # todo: find out what this line does
     data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     # Register a handler essentially?
     selector.register(conn, events, data=data)
+    active_connections[addr] = conn
 
 
 # Handle service requests
@@ -62,16 +52,13 @@ def service_connection(key, mask):
             data.outb = data.outb[sent:]
 
 
-
-
-
-
+def send_message():
+    # send to recipient
+    
+    print("to be implemented")
 
 
 if __name__ == "__main__":
-    # Start HTTP server in a separate thread
-    # http_thread = threading.Thread(target=run_http_server, daemon=True)
-    # http_thread.start()
     # AF_INET defines the address family (ex. IPv4)
     # SOCK_STREAM defines socket type (ex. TCP)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,21 +70,16 @@ if __name__ == "__main__":
     # Register the initial socket by the server (only looks for incoming connections)
     selector.register(server_socket, selectors.EVENT_READ, data=None)
     
-    # Event count (delete later)
-    # event_count = 0
     try:
         # Infinitely listen to the socket
         while True:
             # Look at all currently registered sockets, and if we get an event sent, it selects it & then we handle the events.
             events = selector.select(timeout=None)
-            # event_count += 1
-            # print("events: ", event_count)
             for key, mask in events:
                 if key.data is None:
                     print("accepting connection!")
                     accept_connection(key.fileobj)
                 else:
-                    # print("servicing connection")
                     service_connection(key, mask)
     except KeyboardInterrupt:
         print("Caught keyboard interrupt, exiting")
