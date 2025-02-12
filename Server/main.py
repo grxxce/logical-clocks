@@ -35,9 +35,6 @@ def accept_connection(sock):
     selector.register(conn, events, data=data)
 
 
-
-
-
 # Handle service requests
 def service_connection(key, mask):
     sock = key.fileobj
@@ -59,7 +56,7 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_WRITE:
         if data.outb:
             # print(f"{key}:{mask}")
-            return_data = "data!!"
+            return_data = "LOGINSUCCESS"
             return_data = return_data.encode("utf-8")
             sent = sock.send(return_data)
             data.outb = data.outb[sent:]

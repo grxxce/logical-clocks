@@ -6,7 +6,7 @@
 # Depending on the use of JSON or the use of Strings!
 
 # Default (using the §)
-# VERSION§OP_CODE§LENGTH§ARGUMENTS
+# VERSION§LENGTH§OP_CODE§ARGUMENTS
 #       VERSION will be an integer
 #       OP_CODE will be a string that matches one of the following:
 #               REGISTER
@@ -17,7 +17,7 @@
 #       LENGTH will be an integer detailing the # of bytes that should be read in the message.
 #       ARGUMENTS will be the arguments to the function that the OP_CODE points to.
 # Example:
-#   1§REGISTER§29§{username}§{password}§{email}
+#   1§29§REGISTER§§{username}§{password}§{email}
 
 # REGISTER
 # ARGUMENTS:

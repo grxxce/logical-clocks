@@ -1,26 +1,24 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import re
-from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
-
 
 # TODO: HANDLE FAILED CONNECTIONS (NO RETURN)
 # TODO: add a config file for the security + port 
+# TODO: Add config file for versioning too!
 
-# Add config file for versioning too!
 version = 1
-
-
-class LoginClient:
-    def __init__(self, base_url='http://localhost:5002'):
-        self.base_url = base_url
+class LoginUI:
+    def __init__(self, root, login_callback, register_callback):
+        self.root = root
+        self.login_callback = login_callback
+        self.register_callback = register_callback
         
-        self.root = tk.Tk()
+        # Setup root window
         self.root.title("Login System")
         self.root.geometry("500x700")
         self.root.resizable(True, True)
         
+        # Setup styles
         self.style = ttk.Style()
         self.style.configure('TFrame', background='#f0f0f0')
         self.style.configure('TLabel', background='#f0f0f0', font=('Arial', 12))
@@ -28,7 +26,7 @@ class LoginClient:
         self.style.configure('TButton', font=('Arial', 12))
         
         self.create_widgets()
-
+    
     def create_widgets(self):
         """Create and setup all GUI widgets."""
         self.main_frame = ttk.Frame(self.root, padding="20")
@@ -42,7 +40,10 @@ class LoginClient:
         )
         title_label.pack(pady=20)
         
-        # Login Frame
+        self._create_login_frame()
+        self._create_register_frame()
+    
+    def _create_login_frame(self):
         self.login_frame = ttk.LabelFrame(self.main_frame, text="Login", padding="10")
         self.login_frame.pack(fill=tk.X, pady=10)
         
@@ -57,10 +58,10 @@ class LoginClient:
         ttk.Button(
             self.login_frame,
             text="Login",
-            command=self.login
+            command=self._handle_login
         ).pack(fill=tk.X, pady=10)
-        
-        # Register Frame
+    
+    def _create_register_frame(self):
         self.register_frame = ttk.LabelFrame(self.main_frame, text="Register", padding="10")
         self.register_frame.pack(fill=tk.X, pady=10)
         
@@ -83,57 +84,15 @@ class LoginClient:
         ttk.Button(
             self.register_frame,
             text="Register",
-            command=self.register
+            command=self._handle_register
         ).pack(fill=tk.X, pady=10)
-
-    def validate_email(self, email):
+    
+    def _validate_email(self, email):
         """Validate email format."""
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(pattern, email) is not None
-
-    # def send_request(self, message):
-    #     """Send HTTP request to server using custom protocol."""
-    #     try:
-    #         print("length", str(len(message)))
-    #         headers = {
-    #             'Content-Type': 'text/plain',
-    #             'Content-Length': str(len(message))
-    #         }
-            
-    #         req = Request(self.base_url, message.encode('utf-8'), headers, method='POST')
-            
-    #         with urlopen(req) as response:
-    #             return response.read().decode('utf-8')
-                
-    #     except HTTPError as e:
-    #         return f"ERROR§HTTP Error: {str(e)}"
-    #     except URLError as e:
-    #         return "ERROR§Could not connect to server"
-    #     except Exception as e:
-    #         return f"ERROR§{str(e)}"
-
-    def send_request(self, message):
-        try:
-            print("length", str(len(message)))
-            headers = {
-                'Content-Type': 'text/plain',
-                'Content-Length': str(len(message))
-            }
-            
-            req = Request(self.base_url, message.encode('utf-8'), headers, method='POST')
-            
-            with urlopen(req) as response:
-                return response.read().decode('utf-8')
-                
-        except HTTPError as e:
-            return f"ERROR§HTTP Error: {str(e)}"
-        except URLError as e:
-            return "ERROR§Could not connect to server"
-        except Exception as e:
-            return f"ERROR§{str(e)}"        
-
-    def login(self):
-        """Handle login button click."""
+    
+    def _handle_login(self):
         username = self.login_username.get().strip()
         password = self.login_password.get()
         
@@ -141,25 +100,14 @@ class LoginClient:
             messagebox.showerror("Error", "Please fill in all fields")
             return
         
-        # Protocol: LOGIN§username§password
-        message = f"LOGIN§{username}§{password}"
-        response = self.send_request(message)
-        
-        status, message = response.split('§', 1)
-        if status == "SUCCESS":
-            messagebox.showinfo("Success", message)
-            # Here you could open a new window for the logged-in user
-        else:
-            messagebox.showerror("Error", message)
-
-    def register(self):
-        """Handle register button click."""
+        self.login_callback(username, password)
+    
+    def _handle_register(self):
         username = self.register_username.get().strip()
         password = self.register_password.get()
         confirm = self.register_confirm.get()
         email = self.register_email.get().strip()
         
-        # Validation
         if not all([username, password, confirm, email]):
             messagebox.showerror("Error", "Please fill in all fields")
             return
@@ -168,7 +116,7 @@ class LoginClient:
             messagebox.showerror("Error", "Passwords do not match")
             return
         
-        if not self.validate_email(email):
+        if not self._validate_email(email):
             messagebox.showerror("Error", "Invalid email format")
             return
         
@@ -176,17 +124,4 @@ class LoginClient:
             messagebox.showerror("Error", "Password must be at least 8 characters")
             return
         
-        # Protocol: REGISTER§username§password§email
-        message = f"REGISTER§{username}§{password}§{email}"
-        response = self.send_request(message)
-        
-        status, message = response.split('§', 1)
-        if status == "SUCCESS":
-            messagebox.showinfo("Success", message)
-            # Clear registration fields
-            self.register_username.delete(0, tk.END)
-            self.register_password.delete(0, tk.END)
-            self.register_confirm.delete(0, tk.END)
-            self.register_email.delete(0, tk.END)
-        else:
-            messagebox.showerror("Error", message)
+        self.register_callback(username, password, email)
