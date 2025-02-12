@@ -9,7 +9,6 @@ class ChatUI:
         
         # Store callbacks
         self.send_message_callback = callbacks.get('send_message')
-        # self.search_users_callback = callbacks.get('search_users')
         self.get_inbox_callback = callbacks.get('get_inbox')
         self.save_settings_callback = callbacks.get('save_settings')
         self.delete_account_callback = callbacks.get('delete_account')
@@ -147,14 +146,18 @@ class ChatUI:
     
     def _on_search_change(self, *args):
         """Handle search input changes"""
-        search_text = self.search_var.get().strip()
-        # if search_text:
-            # Use callback to filter users
-            # results = self.search_users_callback(search_text)
-        # else:
-            # Show all users except current user when search is empty
-        results = [user for user in self.all_users if user != self.username]
+        search_text = self.search_var.get().strip().lower()  # Convert to lowercase for case-insensitive search
         
+        if search_text:
+            # Filter users whose names contain the search text
+            results = [
+                user for user in self.all_users 
+                if search_text in user.lower() and user != self.username
+            ]
+        else:
+            # Show all users except current user when search is empty
+            results = [user for user in self.all_users if user != self.username]
+            
         self.update_search_results(results)
     
     def _on_user_select(self, event):
