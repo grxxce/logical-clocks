@@ -1,7 +1,9 @@
 import socket
 import selectors
 import types
+from collections import defaultdict
 from service_actions import register, login, delete_account, delete_message, update_notification_limit, parse_request
+
 
 # todo: bot up with ipp address as command line argument 
 # todo: cooked can we use HTTO oor auth?
@@ -16,7 +18,9 @@ version = 1
 
 # Keep track of the currently connected clients.
 active_connections = {}
-active_connections2 = {}
+# username_IP_mappings = {}
+
+pending_messages = defaultdict(list)
 
 def accept_connection(sock):
     """Add documentation soon!"""
@@ -27,8 +31,8 @@ def accept_connection(sock):
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     # Register a handler essentially?
     selector.register(conn, events, data=data)
-    active_connections[addr] = conn
-    print("active connections", active_connections)
+    # active_connections[addr] = conn
+    # print("active connections", active_connections)
 
 
 # Handle service requests
@@ -48,7 +52,9 @@ def service_connection(key, mask):
             handle_client_response(sock, data)
         else:
             print(f"Closing connection to {data.addr}")
+            # Need to remove these from active connection
             selector.unregister(sock)
+            # remove_deactivated_connections(sock)
             sock.close()
     if mask & selectors.EVENT_WRITE:
         if data.outb:
@@ -58,13 +64,20 @@ def service_connection(key, mask):
             # data.outb = data.outb[sent:]
             something = 0
 
+# TODO: 
+# def remove_deactivated_connections(sock):
+#     # Remove the socket of the disconnected client from our active connections list.
+#     for key, value in active_connections.items():
+#         if value == sock:
+#             active_connections.pop(key)
+
 
 
 # Dealing with one client <-> server relationship at a time!
 # Main point of contact with main.py
 def handle_client_response(sock, data):
     print("handle_client_response")
-    print(data.outb)
+    print("data.outb", data.outb)
     # Decipher message as a Message object.
     try:
         request = parse_request(data)
@@ -75,12 +88,13 @@ def handle_client_response(sock, data):
         match opcode:                
             case "REGISTER":
                 response = register(*arguments)
-                print("register called & did stuff", response)
             case "LOGIN":
                 response = login(*arguments)
+                # Link this username to the socket & IP.
+                # username_IP_mappings[arguments[0]] = sock.gethostbyname(hostname)
                 active_connections[arguments[0]] = sock
-                print(active_connections2)
-                print(f"login: {response}")
+                print("about to check pending")
+                check_pending_messages(arguments[0])
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
                 # response = ""
@@ -93,8 +107,6 @@ def handle_client_response(sock, data):
             case _:
                 response = "Nothing to do."
 
-        print("Response:", response)
-        # print(f"Finished parsing request with response: {response}")
         # take response & handle it / serialize it
         response = response.encode("utf-8")
         sent = sock.send(response)
@@ -111,6 +123,8 @@ def send_message(sender, recipient, message):
     # Case 2: The recipient is not online.
     #       Then, wait until they are back to check.
     # print(sender, recipient, message)
+    message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
+    request = f"{version}§{len(message_request)}§{message_request}"
     if recipient in active_connections.keys():
         # They are online, so send the message
         message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
@@ -119,15 +133,30 @@ def send_message(sender, recipient, message):
         
         message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
         request2 = f"{version}§{len(message_status)}§{message_status}"
+        # sent = active_connections[recipient].send(request.encode("utf-8"))
+        # active_connections[recipient].outb = active_connections[recipient].outb[sent:]
+        # print("sent!")
         return request2
     else:
         # not online!
-        print("to be done")
+        # Add to a list of pending messages, so that when the user 
+        # comes back online that they will receive their messages.
+        print("pending messages append")
+        pending_messages[recipient].append(request)
 
-# def send_message():
-#     # send to recipient
-#     print("to be implemented")
 
+def check_pending_messages(username):
+    """Documentation"""
+    if len(pending_messages[username]) > 0:
+        print("check_pending_messages")
+        # Send over all of the pending messages to the client.
+        try:
+            for message in pending_messages[username]:
+                active_connections[username].send(message.encode("utf-8"))
+            pending_messages[username] = []
+        except: 
+            # The socket must have disconnected, thus hold onto the pending options.
+            return
 
 if __name__ == "__main__":
     # AF_INET defines the address family (ex. IPv4)
