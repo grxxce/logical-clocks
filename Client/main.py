@@ -16,6 +16,9 @@ class Client:
         self.connectedWithServer = False
         self.socketConnection = None
         self.running = True
+
+        #todo: replace with real thing later
+        self.message_history_limit = 50
         
         # Create root window
         self.root = tk.Tk()
@@ -72,12 +75,24 @@ class Client:
 
     
     def _handle_get_inbox(self):
-        """Handle inbox refresh requests"""
-        # inbox_request = f"INBOX§{self.current_username}"
-        # print("handle_get_inbox calling send_request")
-        # self.send_request(inbox_request)
-        # You'll need to implement response handling
-        return ["conversation1", "conversation2"]  # Placeholder
+        """Handle inbox refresh requests and return unread messages."""
+        print("handle_get_inbox calling send_request")
+        unread_messages = {}
+        
+        # Check chat histories for unread messages
+        if hasattr(self, 'chat_ui'):
+            for username, messages in self.chat_ui.chat_histories.items():
+                # Get user's message history limit
+                history_limit = 50  # Default could be 50
+                
+                # Get unread messages (messages beyond the history limit)
+                if len(messages) > history_limit:
+                    unread_messages[username] = messages[history_limit:]
+                    # Trim chat history to limit
+                    self.chat_ui.chat_histories[username] = messages[:history_limit]
+        
+        print(hasattr(self, 'chat_ui'), unread_messages)
+        return list(unread_messages.keys())  # Return users with unread messages
 
     def _handle_login(self, username, password):
         """Callback for login button."""
@@ -190,6 +205,14 @@ class Client:
                             self.chat_ui.display_message(s, m))
                     else:
                         print("Warning: Message received before chat UI was ready")
+            
+            elif parts[2] == "RECEIVE_MESSAGE":
+                print("Received message:", parts)
+                if hasattr(self, 'chat_ui'):
+                    sender = parts[3]
+                    message = parts[5]
+                    self.root.after(0, lambda s=sender, m=message: 
+                        self.chat_ui.display_message(s, m))
         
     # Socket Connections & Management
     def send_request(self, message):

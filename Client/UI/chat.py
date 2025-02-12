@@ -8,6 +8,7 @@ class ChatUI:
         self.all_users = all_users
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
+        self.new_messages = {}
         self.selected_recipient = None
         
         # Store callbacks
@@ -156,9 +157,10 @@ class ChatUI:
         # Initialize chat history for new users
         if username not in self.chat_histories:
             self.chat_histories[username] = []
-            
+            self.new_messages[username] = []
         # Display chat history
         self._display_chat_history(username)
+        self._refresh_inbox()
     
     def _display_chat_history(self, username):
         """Display the chat history for a specific user"""
@@ -185,13 +187,24 @@ class ChatUI:
             print("from_user not in chat_histories")
             self.chat_histories[from_user] = []
         
+        if from_user not in self.new_messages:
+            self.new_messages[from_user] = []
+
         self.chat_histories[from_user].append({
+            'sender': from_user,
+            'message': message,
+            'timestamp': timestamp
+        })
+        self.new_messages[from_user].append({
             'sender': from_user,
             'message': message,
             'timestamp': timestamp
         })
 
         print("chat_histories", self.chat_histories)
+
+        self.display_stored_messages()
+        self._refresh_inbox()
 
     def display_sent_message(self, message):
         """Display a sent message in the chat area."""
@@ -313,18 +326,80 @@ class ChatUI:
     
     def _on_inbox_select(self, event):
         """Handle inbox conversation selection"""
-        selection = self.inbox_list.curselection()
-        if selection:
-            self.selected_recipient = self.inbox_list.get(selection[0])
-            self.chat_frame.configure(text=f"Chat with {self.selected_recipient}")
-            # Load chat history here
+        # selection = self.inbox_list.curselection()
+        # print("selection:", selection)
+        # if not selection:
+        #     return
+            
+        # # Get selected message data
+        # selected_index = selection[0]
+        # selected_message = self.new_messages[selected_index]
+        # sender = selected_message['sender']
+        # message = selected_message['message']
+        # timestamp = selected_message['timestamp']
+        
+        # print(f"Selected message from {sender}: {message}")
+        
+        # # Remove this specific message from new_messages
+        # if sender in self.new_messages:
+        #     # Find and remove the specific message
+        #     self.new_messages[sender] = [
+        #         msg for msg in self.new_messages[sender]
+        #         if not (msg['message'] == message and 
+        #                msg['timestamp'] == timestamp)
+        #     ]
+            
+        #     # If no more messages from this sender, remove the sender
+        #     if not self.new_messages[sender]:
+        #         del self.new_messages[sender]
+        
+        # # Add message to chat history
+        # if sender not in self.chat_histories:
+        #     self.chat_histories[sender] = []
+        # self.chat_histories[sender].append({
+        #     'sender': sender,
+        #     'message': message,
+        #     'timestamp': timestamp
+        # })
+        
+        # # Set as selected recipient and display chat
+        # self.selected_recipient = sender
+        # self.chat_frame.configure(text=f"Chat with {sender}")
+        # self.display_stored_messages()
+        
+        # # Refresh inbox to update display
+        # self._refresh_inbox()
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
-        conversations = self.get_inbox_callback()
+        print("new MESSAGES TO POP:", self.new_messages)
+        
         self.inbox_list.delete(0, tk.END)
-        for conv in conversations:
-            self.inbox_list.insert(tk.END, conv)
+        
+        # Get all messages sorted by timestamp
+        all_messages = []
+        for sender, messages in self.new_messages.items():
+            for msg in messages:
+                all_messages.append({
+                    'sender': sender,
+                    'message': msg['message'],
+                    'timestamp': msg['timestamp'],
+                    'preview': f"{sender}: {msg['message'][:30]}..."  # Message preview
+                })
+        
+        # Sort by timestamp (newest first)
+        all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Take most recent 50 messages
+        recent_messages = all_messages[:50]
+        
+        # Update inbox display
+        for msg in recent_messages:
+            self.inbox_list.insert(tk.END, msg['preview'])
+            # Store full message data in the listbox
+            self.inbox_list.message_data = recent_messages
+            
+        print(f"Updated inbox with {len(recent_messages)} messages")
     
     def update_search_results(self, users):
         """Update the search results listbox"""
