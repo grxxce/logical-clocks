@@ -17,9 +17,8 @@ HTTP_PORT = 5002
 version = 1
 
 # Keep track of the currently connected clients.
+connection_to_selector = {}
 active_connections = {}
-# username_IP_mappings = {}
-
 pending_messages = defaultdict(list)
 
 def accept_connection(sock):
@@ -31,8 +30,6 @@ def accept_connection(sock):
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     # Register a handler essentially?
     selector.register(conn, events, data=data)
-    # active_connections[addr] = conn
-    # print("active connections", active_connections)
 
 
 # Handle service requests
@@ -44,10 +41,8 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_READ:
         # read 1024 data points (what unit is this??)
         recv_data = sock.recv(1024)
-        # print(f"recv_data: {recv_data}")
         if recv_data:
             data.outb += recv_data
-            # print(f"data.outb: {data.outb}")
             # Call handler for message received
             handle_client_response(sock, data)
         else:
@@ -56,47 +51,43 @@ def service_connection(key, mask):
             selector.unregister(sock)
             # remove_deactivated_connections(sock)
             sock.close()
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
+    # if mask & selectors.EVENT_WRITE:
+    #     if data.outb:
+            # print("data", data.outb)
             # return_data = "Service connection established."
             # return_data = return_data.encode("utf-8")
             # sent = sock.send(return_data)
             # data.outb = data.outb[sent:]
-            something = 0
-
-# TODO: 
-# def remove_deactivated_connections(sock):
-#     # Remove the socket of the disconnected client from our active connections list.
-#     for key, value in active_connections.items():
-#         if value == sock:
-#             active_connections.pop(key)
-
+            # something = 0
 
 
 # Dealing with one client <-> server relationship at a time!
 # Main point of contact with main.py
 def handle_client_response(sock, data):
     print("handle_client_response")
-    print("data.outb", data.outb)
+    print(f"Before sending: {data.outb}")
     # Decipher message as a Message object.
     try:
         request = parse_request(data)
+        print("Parse request", request)
         opcode = request.opcode
         print("Opcode", opcode)
         arguments = request.arguments
 
-        match opcode:                
+        match opcode:         
             case "REGISTER":
+                # THIS CASE IS ALL SET - BUG
                 response = register(*arguments)
             case "LOGIN":
+                # THIS CASE IS ALL SET - BUG
                 response = login(*arguments)
-                # Link this username to the socket & IP.
-                # username_IP_mappings[arguments[0]] = sock.gethostbyname(hostname)
                 active_connections[arguments[0]] = sock
                 print("about to check pending")
                 check_pending_messages(arguments[0])
             case "SEND_MESSAGE":
+                print("START SEND_MESSAGE")
                 response = send_message(*arguments)
+                print("END SEND MESSAGE")
                 # response = ""
             case "DELETE_MESSAGE":
                 response = delete_message(*arguments)
@@ -108,9 +99,20 @@ def handle_client_response(sock, data):
                 response = "Nothing to do."
 
         # take response & handle it / serialize it
-        response = response.encode("utf-8")
-        sent = sock.send(response)
+        # print("LINE 113 - response")
+        # print(response)
+        # response = response.encode("utf-8")
+        # print("LINE 115 - send over socket")
+        # sent = sock.send(response)
+        # print("LINE 117 - data thing")
+        # data.outb = data.outb[sent:] # Reset our buffer!
+
+        data.outb = response.encode("utf-8")
+        sent = sock.send(data.outb)
+        # Clear the output buffer!
         data.outb = data.outb[sent:]
+        # MUST be empty when all is sent
+        print("Remaining outb:", data.outb) 
         print("response sent!")
     except:
         print(f"handling_client_reponse: error handling data {data}")
@@ -129,7 +131,16 @@ def send_message(sender, recipient, message):
         # They are online, so send the message
         message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
         request = f"{version}§{len(message_request)}§{message_request}"
-        active_connections[recipient].send(request.encode("utf-8"))
+
+        # Okay, so we have now added data to the buffer of this particular socket of 
+        # the person who is receiving the message, thus we must select their data buffer and
+        # clear it!
+        sent = active_connections[recipient].send(request.encode("utf-8"))
+        key = selector.get_key(active_connections[recipient])
+        key.data.outb = key.data.outb[sent:]
+
+
+        print(f"in-between send_message, outb should be empty: {key.data.outb}")
         
         message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
         request2 = f"{version}§{len(message_status)}§{message_status}"
@@ -143,6 +154,10 @@ def send_message(sender, recipient, message):
         # comes back online that they will receive their messages.
         print("pending messages append")
         pending_messages[recipient].append(request)
+        # To ensure no failures occur!
+        message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
+        request2 = f"{version}§{len(message_status)}§{message_status}"
+        return request2
 
 
 def check_pending_messages(username):
