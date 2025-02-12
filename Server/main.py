@@ -42,7 +42,7 @@ HOST = socket.gethostbyname(hostname)
 # MARK: Track necessary states
 active_connections = {}                 # Track currently connected clients
 pending_messages = defaultdict(list)    # Track undelivered messages
-
+pending_deletion = defaultdict(list)    # Track messages to be deleted
 
 # MARK: Managing Client-Server Connections
 def accept_connection(sock):
@@ -223,6 +223,31 @@ def send_message(sender, recipient, message):
         request2 = f"{VERSION}§{len(message_status)}§{message_status}∞"
         return request2
 
+# MARK: Deletion
+def delete_message(message_uuid, sender, recipient):
+    OP_CODE = "DELETE_MESSAGE"
+    request = ClientRequest.serialize(VERSION, OP_CODE, [message_uuid, sender, recipient])
+    
+    if recipient in active_connections.keys():
+        sent = active_connections[recipient].send(request.encode("utf-8"))
+        key = selector.get_key(active_connections[recipient])
+        key.data.outb = key.data.outb[sent:]
+        message_status = ClientRequest.serialize(VERSION, "DELETE_MESSAGE_SUCCEEDED", [message_uuid, sender, recipient])
+        return message_status
+    else:
+        pending_deletion[recipient].append(request)
+        message_status = ClientRequest.serialize(VERSION, "DELETE_MESSAGE_SUCCEEDED", [message_uuid, sender, recipient])
+        return message_status
+
+def check_pending_deleted_messages(username):
+    if len(pending_deletion[username]) > 0:
+        try:
+            for message in pending_deletion[username]:
+                active_connections[username].send(message.encode("utf-8"))
+            pending_deletion[username] = []
+        except: 
+            # The socket must have disconnected, thus hold onto the pending options.
+            return
 
 def check_pending_messages(username):
     """Documentation"""

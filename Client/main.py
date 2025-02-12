@@ -6,8 +6,11 @@ from tkinter import ttk, messagebox
 import re
 import threading
 import argparse
+from Model.ServerRequest import ServerRequest
+
 # Add config file for versioning too!
 version = 1
+json = False
 
 class Client:
     def __init__(self,host, port):
@@ -115,6 +118,7 @@ class Client:
         print("handle_save_settings calling send_request")
         self.send_request(settings_request)
 
+    # MARK: Deletion
     def _handle_delete_account(self):
         """Handle account deletion"""
         delete_request = f"DELETE_ACCOUNT§{self.current_username}"
@@ -122,6 +126,16 @@ class Client:
         self.send_request(message)
         # Close the chat window and return to login
         # self.root.destroy()
+
+    def _handle_delete_message(self, message_uuid, sender, recipient):
+        """Handle the deletion of messages on both a sender & recipients' devices.
+           Send a message to the server asking to delete one or more messages from both clients."""
+        op_code = "DELETE_MESSAGE"
+        if json:
+            delete_request = ServerRequest.serializeJSON(version, op_code, [message_uuid, sender, recipient])
+        else:
+            delete_request = ServerRequest.serialize(version, op_code, [message_uuid, sender, recipient])
+        self.send_request(delete_request)
 
     def establishServerConnection(self):
         try: 
@@ -193,6 +207,12 @@ class Client:
             elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
                 messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
                 self.show_login_ui()
+
+            elif parts[2] == "DELETE_MESSAGE":
+                # Here we need to determine which message in the UI to delete.
+                message_uuid = parts[3]
+                sender = parts[4]
+                recipient = parts[5]
 
             elif parts[2] == "NEW_MESSAGE":
                     print("Received new message:", parts)
