@@ -18,8 +18,8 @@ def parse_request(data):
         print("version")
         print(split_data)
         message["version"] = split_data[0]
-        message["opcode"] = split_data[1]
-        message["length"] = split_data[2]
+        message["length"] = split_data[1]
+        message["opcode"] = split_data[2]
         message["arguments"] = split_data[3:]
         print("at the end!")
         return ClientRequest(data=message)
@@ -86,8 +86,11 @@ def register(username, password, email):
 def login(username, password):
     # do another thing
     try:
-        if AuthHandler.authenticate_user(username=username, password=password):
+        if AuthHandler.authenticate_user(username=username, password=password) == True:
             login_response = "LOGIN_SUCCESS§User authenticated"
+            return f"1§{len(login_response)}§{login_response}"
+        else:
+            login_response = "LOGIN_FAILED§Unable to authenticate user"
             return f"1§{len(login_response)}§{login_response}"
     except:
         print("login: failed to authenticate user")

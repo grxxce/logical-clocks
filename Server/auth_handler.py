@@ -61,7 +61,7 @@ class AuthHandler:
                         (datetime.now(), username)
                     )
                     conn.commit()
-                    return "SUCCESS§Login successful"
+                    return True
                 return "ERROR§Invalid username or password"
         except Exception as e:
             return f"ERROR§Authentication failed: {str(e)}"

@@ -54,20 +54,21 @@ class Client:
     
     def _handle_chat_message(self, message):
         """Handle sending chat messages."""
-        chat_message = f"CHAT§{self.current_username}§{message}"
+        chat_request = f"SEND_MESSAGE§{self.current_username}§{message}"
+        chat_message = f"{version}§{len(chat_request)}§{chat_request}"
         self.send_request(chat_message)
 
     def _handle_login(self, username, password):
         """Callback for login button."""
-        length = len(username) + len(password) + 1
-        message = f"{version}§LOGIN§{length}§{username}§{password}"
+        login_request = f"LOGIN§{username}§{password}"
+        message = f"{version}§{len(login_request)}§{login_request}"
         self.send_request(message)
         print("login message sent")
     
     def _handle_register(self, username, password, email):
         """Callback for register button."""
-        length = len(username) + len(password) + len(email) + 2
-        message = f"{version}§REGISTER§{length}§{username}§{password}§{email}"
+        register_request = f"REGISTER§{username}§{password}§{email}"
+        message = f"{version}§{len(register_request)}§{register_request}"
         self.send_request(message)
     
 
@@ -108,11 +109,11 @@ class Client:
     def handle_server_response(self, data):
         """Handle different types of server responses."""
         parts = data.split('§')
-        if parts[0] == "LOGINSUCCESS":
+        if parts[2] == "LOGIN_SUCCESS":
             # Switch to chat UI on the main thread
             print("switching to chat ui")
             self.root.after(0, lambda: self.show_chat_ui(parts[1]))
-        elif parts[0] == "CHAT":
+        elif parts[2] == "SEND_MESSAGE":
             # Display chat message
             if hasattr(self, 'chat_ui'):
                 self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
