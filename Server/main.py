@@ -5,6 +5,7 @@ import types
 from collections import defaultdict
 from service_actions import register, login, delete_account, delete_message, update_notification_limit, parse_request
 from Model.ClientRequest import ClientRequest
+import json
 
 # todo: bot up with ipp address as command line argument 
 # todo: cooked can we use HTTO oor auth?
@@ -26,6 +27,7 @@ if not len(sys.argv) == 4 and not len(sys.argv) == 3:
 
 
 # MARK: Configuration
+jsonSelected = False
 PORT = int(sys.argv[1])
 if sys.argv[2]:
     VERSION = int(sys.argv[2])
@@ -102,15 +104,6 @@ def service_connection(key, mask):
             
             selector.unregister(sock)
             sock.close()
-    # TODO: Can we delete this?
-    # if mask & selectors.EVENT_WRITE:
-    #     if data.outb:
-            # print("data", data.outb)
-            # return_data = "Service connection established."
-            # return_data = return_data.encode("utf-8")
-            # sent = sock.send(return_data)
-            # data.outb = data.outb[sent:]
-            # something = 0
 
 
 # MARK: Managing Client-Server Requests & Operations
@@ -128,10 +121,18 @@ def handle_client_requests(sock, data):
     """
     print(f"Entering handle_client_requests: data.outb = {data.outb}")
     try:
-        # Decipher message as a ClientRequest object.
-        request = parse_request(data)
-        opcode = request.opcode
-        arguments = request.arguments
+        if jsonSelected:
+            print("json loading!")
+            print(data.outb)
+            message = json.loads(data.outb.decode("utf-8"))
+            print("MESSAGE", message)
+            opcode = message['opcode']
+            arguments = message['arguments']
+        else:
+            # Decipher message as a ClientRequest object.
+            request = parse_request(data)
+            opcode = request.opcode
+            arguments = request.arguments
         # Verify parsing.
         print(f"Verify parsed request with OPCODE {opcode}: {arguments}")
 
@@ -147,14 +148,24 @@ def handle_client_requests(sock, data):
                 # connections.
                 
                 # Send success immediately
-                if response.split("§")[2] == "LOGIN_SUCCESS":
-                    data.outb = response.encode("utf-8")
-                    sent = sock.send(data.outb)             # Send the response over the wire.
-                    data.outb = data.outb[sent:] 
-                    
-                    active_connections[arguments[0]] = sock
-                    check_pending_messages(arguments[0])
-                    response = ""
+                if jsonSelected:
+                    if response['opcode'] == "LOGIN_SUCCESS":
+                        data.outb = response.encode("utf-8")
+                        sent = sock.send(data.outb)             # Send the response over the wire.
+                        data.outb = data.outb[sent:] 
+                        
+                        active_connections[arguments[0]] = sock
+                        check_pending_messages(arguments[0])
+                        response = ""
+                else:
+                    if response.split("§")[2] == "LOGIN_SUCCESS":
+                        data.outb = response.encode("utf-8")
+                        sent = sock.send(data.outb)             # Send the response over the wire.
+                        data.outb = data.outb[sent:] 
+                        
+                        active_connections[arguments[0]] = sock
+                        check_pending_messages(arguments[0])
+                        response = ""
             
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
@@ -189,14 +200,13 @@ def send_message(sender, recipient, message):
     # Case 2: The recipient is not online.
     #       Then, wait until they are back to check.
     OP_CODE = "NEW_MESSAGE"
-    request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message])
-    # message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
-    # request = f"{VERSION}§{len(message_request)}§{message_request}"
+    if jsonSelected:
+        request = ClientRequest.serializeJSON(VERSION, OP_CODE, [sender, recipient, message])
+    else:
+        request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message])
+
     if recipient in active_connections.keys():
         # They are online, so send the message
-        # message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
-        # request = f"{VERSION}§{len(message_request)}§{message_request}"
-
         # Okay, so we have now added data to the buffer of this particular socket of 
         # the person who is receiving the message, thus we must select their data buffer and
         # clear it!
@@ -205,49 +215,23 @@ def send_message(sender, recipient, message):
         key = selector.get_key(active_connections[recipient])
         key.data.outb = key.data.outb[sent:]
         
-        message_status = ClientRequest.serialize(VERSION, "RECEIVED_MESSAGE", [sender, message])
-        # message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
-        # request2 = f"{VERSION}§{len(message_status)}§{message_status}"
-
-        # return request2
+        if jsonSelected:
+            message_status = ClientRequest.serializeJSON(VERSION, "RECEIVED_MESSAGE", [sender, message])
+        else:
+            message_status = ClientRequest.serialize(VERSION, "RECEIVED_MESSAGE", [sender, message])
         return message_status
     else:
-        # not online!
         # Add to a list of pending messages, so that when the user 
         # comes back online that they will receive their messages.
-        print("pending messages append: ", request)
         pending_messages[recipient].append(request)
-        print("updated pending messages", pending_messages)
         # To ensure no failures occur!
-        message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
-        request2 = f"{VERSION}§{len(message_status)}§{message_status}∞"
-        return request2
-
-# MARK: Deletion
-def delete_message(message_uuid, sender, recipient):
-    OP_CODE = "DELETE_MESSAGE"
-    request = ClientRequest.serialize(VERSION, OP_CODE, [message_uuid, sender, recipient])
-    
-    if recipient in active_connections.keys():
-        sent = active_connections[recipient].send(request.encode("utf-8"))
-        key = selector.get_key(active_connections[recipient])
-        key.data.outb = key.data.outb[sent:]
-        message_status = ClientRequest.serialize(VERSION, "DELETE_MESSAGE_SUCCEEDED", [message_uuid, sender, recipient])
-        return message_status
-    else:
-        pending_deletion[recipient].append(request)
-        message_status = ClientRequest.serialize(VERSION, "DELETE_MESSAGE_SUCCEEDED", [message_uuid, sender, recipient])
+        
+        if jsonSelected:
+            message_status = ClientRequest.serializeJSON(VERSION, "RECEIVED_MESSAGE", [sender, message])
+        else:
+            message_status = ClientRequest.serialize(VERSION, "RECEIVED_MESSAGE", [sender, message])
         return message_status
 
-def check_pending_deleted_messages(username):
-    if len(pending_deletion[username]) > 0:
-        try:
-            for message in pending_deletion[username]:
-                active_connections[username].send(message.encode("utf-8"))
-            pending_deletion[username] = []
-        except: 
-            # The socket must have disconnected, thus hold onto the pending options.
-            return
 
 def check_pending_messages(username):
     """Documentation"""

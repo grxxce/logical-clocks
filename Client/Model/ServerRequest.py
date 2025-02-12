@@ -22,5 +22,5 @@ class ServerRequest:
             "opcode": op_code,
             "arguments": arguments
         }
-        # Return as JSON string?
+        # Return as JSON string.
         return json.dumps(operation_information)

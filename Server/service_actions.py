@@ -2,6 +2,8 @@ from auth_handler import AuthHandler
 from Model.ClientRequest import ClientRequest
 from database import DatabaseManager
 
+jsonSelected = False
+
 def parse_request(data):
     """Documentation"""
     # Do our parsing of our message into something that the client understands!
@@ -24,7 +26,6 @@ def parse_request(data):
 
 
 # Handle registration requests
-# NOT THE PROBLEM
 def register(username, password, email):
     # do things here
     AuthHandler.setup_database()
@@ -40,15 +41,19 @@ def register(username, password, email):
 
 
 # Handle login requests
-# NOT THE PROBLEM
 def login(username, password):
     # do another thing
     try:
         if AuthHandler.authenticate_user(username=username, password=password) == True:
             # If we have a successful login, we should send over the necessary data to the user.
             setup_response = setup(username)
-            login_response = f"LOGIN_SUCCESS§User authenticated§{username}§{setup_response}"
-            return f"1§{len(login_response)}§{login_response}"
+            if jsonSelected:
+                login_response = ClientRequest.serializeJSON(1, "LOGIN_SUCCESS", ["User authenticated", username, setup_response])
+            else:
+                login_response = ClientRequest.serialize(1, "LOGIN_SUCCESS", ["User authenticated", username, setup_response])
+            return login_response
+            # login_response = f"LOGIN_SUCCESS§User authenticated§{username}§{setup_response}"
+            # return f"1§{len(login_response)}§{login_response}"
         else:
             login_response = "LOGIN_FAILED§Unable to authenticate user"
             return f"1§{len(login_response)}§{login_response}"
