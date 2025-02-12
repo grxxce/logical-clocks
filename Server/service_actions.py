@@ -98,11 +98,6 @@ def setup(username):
     response = "USERS"
     for user in usernames:
         response += "§" + user
-
-    # Check if any messages are pending
-
-    # Consider user preferences when sending unread messages.
-
     return response
 
 # version = 1
@@ -127,10 +122,14 @@ def setup(username):
 def delete_message():
     # could be one message or multiple
     print("to be implemented")
+    response = "DELETE_MESSAGE_SUCCESS§Message deleted"
 
-def delete_account():
+def delete_account(username):
     # remove from db & delete messages?
-    print("to be implemented")
+    DatabaseManager.delete_account(username)
+    print("deleted account")
+    delete_response = "DELETE_ACCOUNT_SUCCESS§Account deleted"
+    return f"1§{len(delete_response)}§{delete_response}"
 
 def update_notification_limit():
     # set the limit on the # of unread messages to be received at a given time

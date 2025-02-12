@@ -2,10 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 
-# TODO: HANDLE FAILED CONNECTIONS (NO RETURN)
-# TODO: add a config file for the security + port 
-# TODO: Add config file for versioning too!
-
 version = 1
 class LoginUI:
     def __init__(self, root, login_callback, register_callback):
@@ -15,7 +11,7 @@ class LoginUI:
         
         # Setup root window
         self.root.title("Login System")
-        self.root.geometry("500x700")
+        self.root.geometry("500x800")
         self.root.resizable(True, True)
         
         # Setup styles

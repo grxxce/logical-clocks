@@ -102,9 +102,10 @@ class Client:
     def _handle_delete_account(self):
         """Handle account deletion"""
         delete_request = f"DELETE_ACCOUNT§{self.current_username}"
-        self.send_request(delete_request)
+        message = f"{version}§{len(delete_request)}§{delete_request}"
+        self.send_request(message)
         # Close the chat window and return to login
-        self.root.destroy()
+        # self.root.destroy()
 
     def establishServerConnection(self):
         try: 
@@ -153,11 +154,13 @@ class Client:
             
             # Switch to chat UI and pass all users
             self.root.after(0, lambda: self.show_chat_ui(username, all_users))
-        
         elif parts[2] == "SEND_MESSAGE":
             # Display chat message
             if hasattr(self, 'chat_ui'):
                 self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
+        elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
+            messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
+            self.show_login_ui()
         
     # Socket Connections & Management
     def send_request(self, message):
@@ -166,7 +169,7 @@ class Client:
                 self.establishServerConnection()
             
             # If established successfully, then send request
-            print("sending message", message.encode())
+            print("sending_request sending: ", message.encode())
             self.socketConnection.send(message.encode('utf-8'))
             # sent = self.socketConnection.send(message.encode('utf-8'))
             # data.outb = data.outb[sent:]
