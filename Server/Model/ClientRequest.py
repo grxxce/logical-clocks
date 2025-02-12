@@ -45,10 +45,11 @@
 # ARGUMENTS:
 #       username
 
+import json
+
 class ClientRequest:
     # Initialize a message from serialized data.
     def __init__(self, data):
-        # parsed_info = parse_message(data)
         # if parsed_info:
         self.version = data["version"]
         self.opcode = data["opcode"]
@@ -56,12 +57,21 @@ class ClientRequest:
         self.arguments = data["arguments"]
 
     @staticmethod
-    def serializeResponse(data):
-        # Our serialization function, should return the properly formatted message to be sent over the socket
-        print("Serializing")
-        # response = f"{version}"
+    def serialize(version, op_code, arguments):
+        """TODO: add documentation"""
+        operation_specific = f"{op_code}"
+        for arg in arguments:
+            operation_specific += f"§{arg}"
+        return f"{version}§{len(operation_specific)}§{operation_specific}"
 
+    # TODO: see if this works!
     @staticmethod
-    def serializeResponseAsJSON():
+    def serializeJSON(version, op_code, arguments):
         # Serialization function using JSON.
-        print("Serializing as JSON")
+        operation_information = {
+            "version": version,
+            "opcode": op_code,
+            "arguments": arguments
+        }
+        # Return as JSON string?
+        return json.dumps(operation_information)

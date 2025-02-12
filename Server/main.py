@@ -1,56 +1,97 @@
+import sys
 import socket
 import selectors
 import types
 from collections import defaultdict
 from service_actions import register, login, delete_account, delete_message, update_notification_limit, parse_request
-
+from Model.ClientRequest import ClientRequest
 
 # todo: bot up with ipp address as command line argument 
 # todo: cooked can we use HTTO oor auth?
 
-# Constants & State Tracking
+
+"""
+Welcome & Command-Line Arguments.
+We recommend using PORT = 5001 or 5002.
+
+Proper usage to launch server:
+    
+    python3 main.py PORT VERSION=1
+"""
+if not len(sys.argv) == 4 and not len(sys.argv) == 3:
+    sys.exit("Please follow the proper usage: python3 main.py PORT VERSION=1")
+# TODO: more easy checks??? brownie points???
+# elif not isinstance(sys.argv[2], int) or int(sys.argv[2]) < 0:
+#     sys.exit("The PORT entered must be a positive integer.") 
+
+
+# MARK: Configuration
+PORT = int(sys.argv[1])
+if sys.argv[2]:
+    VERSION = int(sys.argv[2])
+else:
+    VERSION = 1
+
+
+# MARK: Prepare sockets & selectors
 selector = selectors.DefaultSelector()
 hostname = socket.gethostname()
 HOST = socket.gethostbyname(hostname) 
-PORT = 5001 # todo: check about if this is allowed!!
-HTTP_PORT = 5002
-version = 1
 
-# Keep track of the currently connected clients.
-connection_to_selector = {}
-active_connections = {}
-pending_messages = defaultdict(list)
 
+# MARK: Track necessary states
+active_connections = {}                 # Track currently connected clients
+pending_messages = defaultdict(list)    # Track undelivered messages
+
+
+# MARK: Managing Client-Server Connections
 def accept_connection(sock):
-    """Add documentation soon!"""
-    conn, addr = sock.accept()
-    print(f"Accepted connection from {addr}")
-    conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    # Register a handler essentially?
-    selector.register(conn, events, data=data)
+    """
+    Registers and forms socket connections between the server and individual clients.
+    Utilizes selectors in a non-blocking manner to accept and register socket connections.
+
+            Parameters:
+                    sock: A socket used to connect with the client.
+            Returns:
+                    Void: Registers the connection in our global selectors.
+                    Error: If the socket fails to connect, a socket error will be raised. 
+    """
+    try:
+        conn, addr = sock.accept()
+        print(f"Accepted connection from {addr}.")
+        conn.setblocking(False)
+        data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
+        events = selectors.EVENT_READ | selectors.EVENT_WRITE
+        selector.register(conn, events, data=data)
+    except socket.error as e:
+        print(f"Failed to accept socket connection with socket error: {e}")
 
 
-# Handle service requests
 def service_connection(key, mask):
-    """Add documentation soon"""
+    """
+    Maintains socket connections to handle incoming messages and to address socket closures.
+    Calls upon helper functions to handle cases of requests.
+
+            Parameters:
+                    key: key pieces of information about a socket, including its data, fd, 
+                         and more.
+                    mask: an integer representing events occuring on the socket
+            Returns:
+                    Void: handles delegating to specific functionalities
+    """
     sock = key.fileobj
     data = key.data
     # Data received from the client
     if mask & selectors.EVENT_READ:
-        # read 1024 data points (what unit is this??)
         recv_data = sock.recv(1024)
         if recv_data:
             data.outb += recv_data
-            # Call handler for message received
-            handle_client_response(sock, data)
+            handle_client_requests(sock, data)
         else:
             print(f"Closing connection to {data.addr}")
-            # Need to remove these from active connection
             selector.unregister(sock)
-            # remove_deactivated_connections(sock)
             sock.close()
+    # TODO: Can we delete this?
     # if mask & selectors.EVENT_WRITE:
     #     if data.outb:
             # print("data", data.outb)
@@ -61,34 +102,42 @@ def service_connection(key, mask):
             # something = 0
 
 
-# Dealing with one client <-> server relationship at a time!
-# Main point of contact with main.py
-def handle_client_response(sock, data):
-    print("handle_client_response")
-    print(f"Before sending: {data.outb}")
-    # Decipher message as a Message object.
-    try:
-        request = parse_request(data)
-        print("Parse request", request)
-        opcode = request.opcode
-        print("Opcode", opcode)
-        arguments = request.arguments
+# MARK: Managing Client-Server Requests & Operations
+def handle_client_requests(sock, data):
+    """
+    Maintains socket connections to handle incoming messages and to address socket closures.
+    Calls upon helper functions to handle cases of requests.
 
+            Parameters:
+                    key: key pieces of information about a socket, including its data, fd, 
+                         and more.
+                    mask: an integer representing events occuring on the socket
+            Returns:
+                    Void: handles delegating to specific functionalities
+    """
+    print(f"Entering handle_client_requests: data.outb = {data.outb}")
+    try:
+        # Decipher message as a ClientRequest object.
+        request = parse_request(data)
+        opcode = request.opcode
+        arguments = request.arguments
+        # Verify parsing.
+        print(f"Verify parsed request with OPCODE {opcode}: {request}")
+
+        # Considering the given operation desired, respond accordingly.
+        # Call out to helper functionalities & operation-handy code.
         match opcode:         
             case "REGISTER":
-                # THIS CASE IS ALL SET - BUG
                 response = register(*arguments)
             case "LOGIN":
-                # THIS CASE IS ALL SET - BUG
                 response = login(*arguments)
+                # Ensure that we add this connection to our currently active
+                # connections.
+                # TODO: "if contains the word SUCCESS?"
                 active_connections[arguments[0]] = sock
-                print("about to check pending")
                 check_pending_messages(arguments[0])
             case "SEND_MESSAGE":
-                print("START SEND_MESSAGE")
                 response = send_message(*arguments)
-                print("END SEND MESSAGE")
-                # response = ""
             case "DELETE_MESSAGE":
                 response = delete_message(*arguments)
             case "DELETE_ACCOUNT":
@@ -98,56 +147,50 @@ def handle_client_response(sock, data):
             case _:
                 response = "Nothing to do."
 
-        # take response & handle it / serialize it
-        # print("LINE 113 - response")
-        # print(response)
-        # response = response.encode("utf-8")
-        # print("LINE 115 - send over socket")
-        # sent = sock.send(response)
-        # print("LINE 117 - data thing")
-        # data.outb = data.outb[sent:] # Reset our buffer!
-
+        # Encode the appropriate response, which may contain
+        # information about the success or failure of an operation,
+        # using our serialization functionality.
         data.outb = response.encode("utf-8")
-        sent = sock.send(data.outb)
-        # Clear the output buffer!
-        data.outb = data.outb[sent:]
-        # MUST be empty when all is sent
-        print("Remaining outb:", data.outb) 
-        print("response sent!")
+        sent = sock.send(data.outb)             # Send the response over the wire.
+        data.outb = data.outb[sent:]            # Clear the output buffer.
+        print(f"Check outb: {data.outb}")     # MUST be empty when all is sent.
+        print(f"Response sent successfully via {sock}")
     except:
+        # TODO: make this better!!
         print(f"handling_client_reponse: error handling data {data}")
 
+
 def send_message(sender, recipient, message):
-    print("attempting to send message", sender, recipient, message)
+    """ADD COMMENTS"""
+    print(f"Sending message from {sender} to {recipient}: {message}")
     # Case 1: Recipient is online.
     #       Then, send the message immediately.
     # 
     # Case 2: The recipient is not online.
     #       Then, wait until they are back to check.
-    # print(sender, recipient, message)
-    message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
-    request = f"{version}§{len(message_request)}§{message_request}"
+    OP_CODE = "NEW_MESSAGE"
+    request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message])
+    # message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
+    # request = f"{VERSION}§{len(message_request)}§{message_request}"
     if recipient in active_connections.keys():
         # They are online, so send the message
-        message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
-        request = f"{version}§{len(message_request)}§{message_request}"
+        # message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
+        # request = f"{VERSION}§{len(message_request)}§{message_request}"
 
         # Okay, so we have now added data to the buffer of this particular socket of 
         # the person who is receiving the message, thus we must select their data buffer and
         # clear it!
+        # sent = active_connections[recipient].send(request.encode("utf-8"))
         sent = active_connections[recipient].send(request.encode("utf-8"))
         key = selector.get_key(active_connections[recipient])
         key.data.outb = key.data.outb[sent:]
-
-
-        print(f"in-between send_message, outb should be empty: {key.data.outb}")
         
-        message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
-        request2 = f"{version}§{len(message_status)}§{message_status}"
-        # sent = active_connections[recipient].send(request.encode("utf-8"))
-        # active_connections[recipient].outb = active_connections[recipient].outb[sent:]
-        # print("sent!")
-        return request2
+        message_status = ClientRequest.serialize(VERSION, "RECEIVED_MESSAGE", [sender, message])
+        # message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
+        # request2 = f"{VERSION}§{len(message_status)}§{message_status}"
+
+        # return request2
+        return message_status
     else:
         # not online!
         # Add to a list of pending messages, so that when the user 
@@ -156,7 +199,7 @@ def send_message(sender, recipient, message):
         pending_messages[recipient].append(request)
         # To ensure no failures occur!
         message_status = f"RECEIVED_MESSAGE§{sender}§{message}"
-        request2 = f"{version}§{len(message_status)}§{message_status}"
+        request2 = f"{VERSION}§{len(message_status)}§{message_status}"
         return request2
 
 
