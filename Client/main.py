@@ -41,27 +41,54 @@ class Client:
 
     def show_chat_ui(self, username):
         """Switch to chat UI."""
-        # Clear the root window
         for widget in self.root.winfo_children():
             widget.destroy()
             
+        callbacks = {
+            'send_message': self._handle_chat_message,
+            'search_users': self._handle_user_search,
+            'get_inbox': self._handle_get_inbox,
+            'save_settings': self._handle_save_settings,
+            'delete_account': self._handle_delete_account
+        }
+        
         self.current_username = username
         self.chat_ui = ChatUI(
             root=self.root,
-            send_message_callback=self._handle_chat_message,
+            callbacks=callbacks,
             username=username
         )
     
-    def _handle_chat_message(self, message):
+    def _handle_chat_message(self, recipient, message):
         """Handle sending chat messages."""
-        chat_request = f"SEND_MESSAGE§{self.current_username}§{message}"
+        print("handle_chat_message calling send_request")
+        print("username", self.current_username)
+        chat_request = f"SEND_MESSAGE§{self.current_username}§{recipient}§{message}"
         chat_message = f"{version}§{len(chat_request)}§{chat_request}"
+        print("chat_message", chat_message)
         self.send_request(chat_message)
+
+    def _handle_user_search(self, search_text):
+        """Handle user search requests"""
+        search_request = f"SEARCH§{search_text}"
+        print("handle_user_search calling send_request")
+        self.send_request(search_request)
+        # You'll need to implement response handling
+        return ["user1", "user2"]  # Placeholder
+    
+    def _handle_get_inbox(self):
+        """Handle inbox refresh requests"""
+        inbox_request = f"INBOX§{self.current_username}"
+        print("handle_get_inbox calling send_request")
+        self.send_request(inbox_request)
+        # You'll need to implement response handling
+        return ["conversation1", "conversation2"]  # Placeholder
 
     def _handle_login(self, username, password):
         """Callback for login button."""
         login_request = f"LOGIN§{username}§{password}"
         message = f"{version}§{len(login_request)}§{login_request}"
+        print("handle_login calling send_request")
         self.send_request(message)
         print("login message sent")
     
@@ -69,8 +96,21 @@ class Client:
         """Callback for register button."""
         register_request = f"REGISTER§{username}§{password}§{email}"
         message = f"{version}§{len(register_request)}§{register_request}"
+        print("handle_register calling send_request")
         self.send_request(message)
     
+    def _handle_save_settings(self, settings):
+        """Handle saving user settings"""
+        settings_request = f"SETTINGS§{self.current_username}§{settings['message_history_limit']}"
+        print("handle_save_settings calling send_request")
+        self.send_request(settings_request)
+
+    def _handle_delete_account(self):
+        """Handle account deletion"""
+        delete_request = f"DELETE_ACCOUNT§{self.current_username}"
+        self.send_request(delete_request)
+        # Close the chat window and return to login
+        self.root.destroy()
 
     def establishServerConnection(self):
         try: 
@@ -112,36 +152,28 @@ class Client:
         if parts[2] == "LOGIN_SUCCESS":
             # Switch to chat UI on the main thread
             print("switching to chat ui")
-            self.root.after(0, lambda: self.show_chat_ui(parts[1]))
+            # todo: index into 5th element 
+            self.root.after(0, lambda: self.show_chat_ui(parts[3]))
         elif parts[2] == "SEND_MESSAGE":
             # Display chat message
             if hasattr(self, 'chat_ui'):
                 self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
-
 
     # Socket Connections & Management
     def send_request(self, message):
         try:
             if not self.connectedWithServer:
                 self.establishServerConnection()
+            
             # If established successfully, then send request
-            self.socketConnection.send(message.encode())
-            self.handle_responses(self)
+            print("sending message", message.encode())
+            sent = self.socketConnection.send(message.encode('utf-8'))
+            print("sent", sent)
+            data.outb = data.outb[sent:]
+            print("data.outb", data.outb)
+        
         except:
-            print("AHHh")
-
-    def handle_responses(self):
-        print("handling responses")
-        while True:
-            # Look at all currently registered sockets, and if we get an event sent, it selects it & then we handle the events.
-            events = selector.select(timeout=None)
-            # event_count += 1
-            # print("events: ", event_count)
-            for key, mask in events:
-                if key.data is None:
-                    print("accepting connection!")
-                else:
-                    print("servicing connection")
+            print("Exception in send_request")
 
     def run(self):
         """Start the application."""
