@@ -14,9 +14,9 @@ PORT = 5001 # todo: check about if this is allowed!!
 HTTP_PORT = 5002
 version = 1
 
-
 # Keep track of the currently connected clients.
 active_connections = {}
+active_connections2 = {}
 
 def accept_connection(sock):
     """Add documentation soon!"""
@@ -69,6 +69,7 @@ def handle_client_response(sock, data):
     try:
         request = parse_request(data)
         opcode = request.opcode
+        print("Opcode", opcode)
         arguments = request.arguments
 
         match opcode:                
@@ -77,6 +78,8 @@ def handle_client_response(sock, data):
                 print("register called & did stuff", response)
             case "LOGIN":
                 response = login(*arguments)
+                active_connections[arguments[0]] = sock
+                print(active_connections2)
                 print(f"login: {response}")
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
@@ -100,17 +103,19 @@ def handle_client_response(sock, data):
     except:
         print(f"handling_client_reponse: error handling data {data}")
 
-def send_message(curr_connections, sender, recipient, message):
+def send_message(sender, recipient, message):
     # Case 1: Recipient is online.
     #       Then, send the message immediately.
     # 
     # Case 2: The recipient is not online.
     #       Then, wait until they are back to check.
-    if recipient in curr_connections.keys():
+    # print(sender, recipient, message)
+    if recipient in active_connections.keys():
         # They are online, so send the message
         message_request = f"NEW_MESSAGE§{sender}§{recipient}§{message}"
         request = f"{version}§{len(message_request)}§{message_request}"
-        curr_connections[recipient].send(request.encode("utf-8"))
+        active_connections[recipient].send(request.encode("utf-8"))
+        print("sent!")
     else:
         # not online!
         print("to be done")
