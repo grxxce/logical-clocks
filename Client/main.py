@@ -39,24 +39,25 @@ class Client:
             register_callback=self._handle_register
         )
 
-    def show_chat_ui(self, username):
+    def show_chat_ui(self, username, all_users):
         """Switch to chat UI."""
         for widget in self.root.winfo_children():
             widget.destroy()
             
         callbacks = {
             'send_message': self._handle_chat_message,
-            'search_users': self._handle_user_search,
             'get_inbox': self._handle_get_inbox,
             'save_settings': self._handle_save_settings,
             'delete_account': self._handle_delete_account
         }
         
         self.current_username = username
+        self.all_users = all_users
         self.chat_ui = ChatUI(
             root=self.root,
             callbacks=callbacks,
-            username=username
+            username=username,
+            all_users=all_users 
         )
     
     def _handle_chat_message(self, recipient, message):
@@ -68,19 +69,12 @@ class Client:
         print("chat_message", chat_message)
         self.send_request(chat_message)
 
-    def _handle_user_search(self, search_text):
-        """Handle user search requests"""
-        search_request = f"SEARCH§{search_text}"
-        print("handle_user_search calling send_request")
-        self.send_request(search_request)
-        # You'll need to implement response handling
-        return ["user1", "user2"]  # Placeholder
     
     def _handle_get_inbox(self):
         """Handle inbox refresh requests"""
-        inbox_request = f"INBOX§{self.current_username}"
-        print("handle_get_inbox calling send_request")
-        self.send_request(inbox_request)
+        # inbox_request = f"INBOX§{self.current_username}"
+        # print("handle_get_inbox calling send_request")
+        # self.send_request(inbox_request)
         # You'll need to implement response handling
         return ["conversation1", "conversation2"]  # Placeholder
 
@@ -151,14 +145,20 @@ class Client:
         parts = data.split('§')
         if parts[2] == "LOGIN_SUCCESS":
             # Switch to chat UI on the main thread
-            print("switching to chat ui")
-            # todo: index into 5th element 
-            self.root.after(0, lambda: self.show_chat_ui(parts[3]))
+            username = parts[4]
+            print("username supposed", username)
+            all_users = parts[6:]  # Store all users for searching
+            print(f"Logged in as: {username}")
+            print(f"Available users: {all_users}")
+            
+            # Switch to chat UI and pass all users
+            self.root.after(0, lambda: self.show_chat_ui(username, all_users))
+        
         elif parts[2] == "SEND_MESSAGE":
             # Display chat message
             if hasattr(self, 'chat_ui'):
                 self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
-
+        
     # Socket Connections & Management
     def send_request(self, message):
         try:
@@ -167,10 +167,9 @@ class Client:
             
             # If established successfully, then send request
             print("sending message", message.encode())
-            sent = self.socketConnection.send(message.encode('utf-8'))
-            print("sent", sent)
-            data.outb = data.outb[sent:]
-            print("data.outb", data.outb)
+            self.socketConnection.send(message.encode('utf-8'))
+            # sent = self.socketConnection.send(message.encode('utf-8'))
+            # data.outb = data.outb[sent:]
         
         except:
             print("Exception in send_request")

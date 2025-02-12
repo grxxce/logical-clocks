@@ -2,16 +2,14 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 
 class ChatUI:
-    def __init__(self, root, callbacks, username):
+    def __init__(self, root, callbacks, username, all_users):
         self.root = root
         self.username = username
-
-        #todo: delete when we have test users
-        self.selected_recipient = "KAMRYN"
+        self.all_users = all_users
         
         # Store callbacks
         self.send_message_callback = callbacks.get('send_message')
-        self.search_users_callback = callbacks.get('search_users')
+        # self.search_users_callback = callbacks.get('search_users')
         self.get_inbox_callback = callbacks.get('get_inbox')
         self.save_settings_callback = callbacks.get('save_settings')
         self.delete_account_callback = callbacks.get('delete_account')
@@ -29,6 +27,10 @@ class ChatUI:
         
         self.create_widgets()
         self._refresh_inbox()  # Load initial inbox
+
+        self.update_search_results(
+            [user for user in all_users if user != username]
+        )
         
     def create_widgets(self):
         # Main container with two columns
@@ -145,18 +147,21 @@ class ChatUI:
     
     def _on_search_change(self, *args):
         """Handle search input changes"""
-        search_text = self.search_var.get()
-        if search_text:
-            results = self.search_users_callback(search_text)
-            self.update_search_results(results)
+        search_text = self.search_var.get().strip()
+        # if search_text:
+            # Use callback to filter users
+            # results = self.search_users_callback(search_text)
+        # else:
+            # Show all users except current user when search is empty
+        results = [user for user in self.all_users if user != self.username]
+        
+        self.update_search_results(results)
     
     def _on_user_select(self, event):
         """Handle user selection from search results"""
         selection = self.search_results.curselection()
         if selection:
-            #todo: uncomment when we have users
-            # self.selected_recipient = self.search_results.get(selection[0])
-            self.selected_recipient = "testuser"
+            self.selected_recipient = self.search_results.get(selection[0])
             self.chat_display.configure(state='normal')
             self.chat_display.delete(1.0, tk.END)
             self.chat_display.configure(state='disabled')
@@ -166,9 +171,7 @@ class ChatUI:
         """Handle inbox conversation selection"""
         selection = self.inbox_list.curselection()
         if selection:
-            #todo: uncomment when we have users
-            # self.selected_recipient = self.inbox_list.get(selection[0])
-            self.selected_recipient = "testuser"
+            self.selected_recipient = self.inbox_list.get(selection[0])
             self.chat_frame.configure(text=f"Chat with {self.selected_recipient}")
             # Load chat history here
     
