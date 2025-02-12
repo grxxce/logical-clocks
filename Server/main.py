@@ -45,10 +45,11 @@ def service_connection(key, mask):
             sock.close()
     if mask & selectors.EVENT_WRITE:
         if data.outb:
-            return_data = "Service connection established."
-            return_data = return_data.encode("utf-8")
-            sent = sock.send(return_data)
-            data.outb = data.outb[sent:]
+            # return_data = "Service connection established."
+            # return_data = return_data.encode("utf-8")
+            # sent = sock.send(return_data)
+            # data.outb = data.outb[sent:]
+            print("something")
 
 
 def send_message():
