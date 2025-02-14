@@ -27,7 +27,7 @@ if not len(sys.argv) == 4 and not len(sys.argv) == 3:
 
 
 # MARK: Configuration
-isJSON = True
+isJSON = False
 
 PORT = int(sys.argv[1])
 if sys.argv[2]:
@@ -144,6 +144,7 @@ def handle_client_requests(sock, data):
                 response = SM.serialize_to_str(VERSION, register_request[0], register_request[1], isJSON)
             
             case "LOGIN":
+                print("ARGUMENTS", arguments)
                 login_response = login(*arguments)
                 # Ensure that we add this connection to our currently active
                 # connections.

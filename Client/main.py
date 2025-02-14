@@ -11,7 +11,7 @@ import json
 
 # Add config file for versioning too!
 version = 1
-isJSON = True
+isJSON = False
 
 class Client:
     def __init__(self,host, port):
