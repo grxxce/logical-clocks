@@ -1,6 +1,5 @@
 import sqlite3
 
-
 class DatabaseManager:
     @staticmethod
     def get_contacts():
