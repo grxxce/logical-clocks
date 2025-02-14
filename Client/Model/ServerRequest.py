@@ -48,7 +48,7 @@ class ServerRequest:
             for arg in arguments:
                     operation_specific += f"§{arg}"
             request = f"{version}§{len(operation_specific)}§{operation_specific}"
-            logger.info(f"Client request serialized using JSON protocol as {request}")
+            logger.info(f"Client request serialized using custom protocol as {request}")
             return request
 
 
