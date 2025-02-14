@@ -1,10 +1,13 @@
-# from http.server import HTTPServer, BaseHTTPRequestHandler
 import sqlite3
 import hashlib
 from datetime import datetime
-from urllib.parse import parse_qs
 
 class AuthHandler:
+    """
+    The AuthHandler class contains helpful functionalities to manage the authentication
+    of new and existing users. It also manages the `users.db` permanent storage.
+    """
+
     @staticmethod
     def hash_password(password):
         """Hash password using SHA-256."""
@@ -31,7 +34,6 @@ class AuthHandler:
         """Register a new user."""
         try:
             with sqlite3.connect('users.db') as conn:
-                # TODO: CHECK IF THE USER ALREADY EXISTS AND THROW ERROR
                 cursor = conn.cursor()
                 password_hash = AuthHandler.hash_password(password)
                 cursor.execute(
@@ -39,12 +41,11 @@ class AuthHandler:
                     (username, password_hash, email)
                 )
                 conn.commit()
-                return True
-                # return "SUCCESS§Registration successful"
+                return True, "Success"
         except sqlite3.IntegrityError:
-            return "ERROR§Username already exists"
+            return False, "Username already exists."
         except Exception as e:
-            return f"ERROR§Registration failed: {str(e)}"
+            return False, f"Registration failed with error {str(e)}"
 
     @staticmethod
     def authenticate_user(username, password):
@@ -61,7 +62,7 @@ class AuthHandler:
                         (datetime.now(), username)
                     )
                     conn.commit()
-                    return True
-                return "ERROR§Invalid username or password"
+                    return True, "Success"
+                return False, "Invalid username or password"
         except Exception as e:
-            return f"ERROR§Authentication failed: {str(e)}"
+            return False, f"Authentication failed with error: {str(e)}"

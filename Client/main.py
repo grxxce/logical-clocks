@@ -276,10 +276,20 @@ class Client:
                 # Let the UI update
                 self.root.update()
                 break  # Exit after handling login
-            if message["opcode"] == "LOGIN_FAILED":
+            elif message["opcode"] == "LOGIN_FAILED":
                 error_message = arguments[0]
                 logger.info(f"Login rejected with error message: {error_message}")
-                messagebox.showinfo(f"Login Rejected", "Unable to verify account. Please try again and ensure that you input the proper username and password.")
+                messagebox.showinfo(f"Login Rejected", f"Unable to verify account - {error_message}")
+            
+            # Handle registration of new users.
+            elif message["opcode"] == "REGISTER_SUCCESS":
+                logger.info(f"Registration succeeded.")
+                messagebox.showinfo("Registration Succeeded.", "Please proceed to login.")
+            elif message["opcode"] == "REGISTER_FAILED":
+                error_message = arguments[0]
+                logger.info(f"Registration failed with error message: {error_message}")
+                messagebox.showinfo("Registration Failed", f"{error_message}")
+
 
         # Handle responses from the server.
         for message in messages: 

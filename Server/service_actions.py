@@ -6,15 +6,16 @@ def register(username, password, email):
     # do things here
     AuthHandler.setup_database()
     try:
-        if AuthHandler.register_user(username=username, password=password, email=email) == True:
+        status, message = AuthHandler.register_user(username=username, password=password, email=email)
+        if status:
             op_code = "REGISTER_SUCCESS"
             arguments = [f"Registration successful for user: {username}"]
             return op_code, arguments
         else:
             op_code = "REGISTER_FAILED"
-            arguments = ["Failed to register user"]
+            arguments = [f"Failed to register user due to error: {message}"]
             return op_code, arguments
-    except:
+    except Exception as e:
         print("register: failed to authenticate user or something like that")
 
 
@@ -22,7 +23,8 @@ def register(username, password, email):
 def login(username, password):
     # do another thing
     try:
-        if AuthHandler.authenticate_user(username=username, password=password) == True:
+        status, message = AuthHandler.authenticate_user(username=username, password=password)
+        if status:
             # If we have a successful login, we should send over the necessary data to the user.
             setup_response = setup(username)
             print("setup success!")
@@ -31,7 +33,7 @@ def login(username, password):
             return op_code, arguments
         else:
             op_code = "LOGIN_FAILED"
-            arguments = ["Unable to authenticate user"]
+            arguments = [f"Unable to authenticate user: {message}"]
             return op_code, arguments
     except:
         print("login: failed to authenticate user")
