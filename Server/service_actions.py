@@ -1,29 +1,5 @@
 from auth_handler import AuthHandler
-from Model.ClientRequest import ClientRequest
 from database import DatabaseManager
-
-jsonSelected = False
-
-def parse_request(data):
-    """Documentation"""
-    # Do our parsing of our message into something that the client understands!
-    try: 
-        print("parse_request: commencing")
-        message = {}
-        delimiter = '§'
-        split_data = data.outb.decode("utf-8")
-        split_data = split_data.split(delimiter)
-        message["version"] = split_data[0]
-        message["length"] = split_data[1]
-        message["opcode"] = split_data[2]
-        message["arguments"] = split_data[3:]
-        print("parse_request: done and creating client request")
-        return ClientRequest(data=message)
-    except:
-        # Let's not given an error right away!
-        print("This value could not be parsed!")
-        return ValueError
-
 
 # Handle registration requests
 def register(username, password, email):
@@ -31,11 +7,13 @@ def register(username, password, email):
     AuthHandler.setup_database()
     try:
         if AuthHandler.register_user(username=username, password=password, email=email) == True:
-            register_response = "REGISTER_SUCCESS§Registration successful"
-            return f"1§{len(register_response)}§{register_response}"
+            op_code = "REGISTER_SUCCESS"
+            arguments = [f"Registration successful for user: {username}"]
+            return op_code, arguments
         else:
-            register_response = "REGISTER_FAILED§Failed to register user"
-            return f"1§{len(register_response)}§{register_response}"
+            op_code = "REGISTER_FAILED"
+            arguments = ["Failed to register user"]
+            return op_code, arguments
     except:
         print("register: failed to authenticate user or something like that")
 
@@ -47,28 +25,30 @@ def login(username, password):
         if AuthHandler.authenticate_user(username=username, password=password) == True:
             # If we have a successful login, we should send over the necessary data to the user.
             setup_response = setup(username)
-            if jsonSelected:
-                login_response = ClientRequest.serializeJSON(1, "LOGIN_SUCCESS", ["User authenticated", username, setup_response])
-            else:
-                login_response = ClientRequest.serialize(1, "LOGIN_SUCCESS", ["User authenticated", username, setup_response])
-            return login_response
-            # login_response = f"LOGIN_SUCCESS§User authenticated§{username}§{setup_response}"
-            # return f"1§{len(login_response)}§{login_response}"
+            print("setup success!")
+            op_code = "LOGIN_SUCCESS"
+            arguments = ["User authenticated", username, setup_response]
+            return op_code, arguments
         else:
-            login_response = "LOGIN_FAILED§Unable to authenticate user"
-            return f"1§{len(login_response)}§{login_response}"
+            op_code = "LOGIN_FAILED"
+            arguments = "Unable to authenticate user"
+            return op_code, arguments
     except:
         print("login: failed to authenticate user")
 
+# TODO: COME BACK AND CHECK ON THIS!
 def setup(username):
     # Get all possible contacts!! Send them to client when the client logs in
-    print("in setup")
+    # print("in setup")
+    # usernames = DatabaseManager.get_contacts()
+    # response = "USERS"
+    # for user in usernames:
+    #     response += "§" + user
     usernames = DatabaseManager.get_contacts()
-    response = "USERS"
+    response = ["USERS"]
     for user in usernames:
-        response += "§" + user
+        response.append(user)
     return response
-
 
 def delete_message():
     # could be one message or multiple
@@ -76,11 +56,15 @@ def delete_message():
     response = "DELETE_MESSAGE_SUCCESS§Message deleted"
 
 def delete_account(username):
-    # remove from db & delete messages?
+    # # remove from db & delete messages?
+    # DatabaseManager.delete_account(username)
+    # print("deleted account")
+    # delete_response = "DELETE_ACCOUNT_SUCCESS§Account deleted"
+    # return f"1§{len(delete_response)}§{delete_response}"
     DatabaseManager.delete_account(username)
-    print("deleted account")
-    delete_response = "DELETE_ACCOUNT_SUCCESS§Account deleted"
-    return f"1§{len(delete_response)}§{delete_response}"
+    op_code = "DELETE_ACCOUNT_SUCCESS"
+    arguments = ["Account deleted"]
+    return op_code, arguments
 
 def update_notification_limit():
     # set the limit on the # of unread messages to be received at a given time

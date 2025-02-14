@@ -11,7 +11,7 @@ import json
 
 # Add config file for versioning too!
 version = 1
-jsonSelected = False
+isJSON = True
 
 class Client:
     def __init__(self,host, port):
@@ -73,11 +73,7 @@ class Client:
         """Handle sending chat messages."""
         print("handle_chat_message calling send_request")
         OP_CODE = "SEND_MESSAGE"
-        if jsonSelected:
-            chat_message = ServerRequest.serializeJSON(version, OP_CODE, [self.current_username, recipient, message])
-        else:
-            chat_message = ServerRequest.serialize(version, OP_CODE, [self.current_username, recipient, message])
-        print("chat_message", chat_message)
+        chat_message = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, recipient, message], isJSON)
         self.send_request(chat_message)
 
     
@@ -104,30 +100,21 @@ class Client:
     def _handle_login(self, username, password):
         """Callback for login button."""
         OP_CODE = "LOGIN"
-        if jsonSelected:
-            message = ServerRequest.serializeJSON(version, OP_CODE, [username, password])
-        else:
-            message = ServerRequest.serialize(version, OP_CODE, [username, password])
-        self.send_request(message)
+        login_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password], isJSON)
+        self.send_request(login_request)
         print("login message sent")
 
     def _handle_register(self, username, password, email):
         """Callback for register button."""
         OP_CODE = "REGISTER"
-        if jsonSelected:
-            message = ServerRequest.serializeJSON(version, OP_CODE, [username, password, email])
-        else:
-            message = ServerRequest.serialize(version, OP_CODE, [username, password, email])
+        register_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password, email], isJSON)
         print("handle_register calling send_request")
-        self.send_request(message)
+        self.send_request(register_request)
     
     def _handle_save_settings(self, settings):
         """Handle saving user settings"""
-        OP_CODE = "SETTINGS"
-        if jsonSelected:
-            settings_request = ServerRequest.serializeJSON(version, OP_CODE, [self.current_username, settings['message_history_limit']])
-        else:
-            settings_request = ServerRequest.serialize(version, OP_CODE, [self.current_username, settings['message_history_limit']])
+        OP_CODE = "NOTIFICATION_LIMIT"
+        settings_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, settings['message_history_limit']], isJSON)
         print("handle_save_settings calling send_request")
         self.send_request(settings_request)
 
@@ -135,11 +122,8 @@ class Client:
     def _handle_delete_account(self):
         """Handle account deletion"""
         OP_CODE = "DELETE_ACCOUNT"
-        if jsonSelected:
-            message = ServerRequest.serializeJSON(version, OP_CODE, [self.current_username])
-        else:
-            message = ServerRequest.serialize(version, OP_CODE, [self.current_username])
-        self.send_request(message)
+        delete_account_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username], isJSON)
+        self.send_request(delete_account_request)
         # Close the chat window and return to login
         # self.root.destroy()
 
@@ -147,11 +131,8 @@ class Client:
         """Handle the deletion of messages on both a sender & recipients' devices.
            Send a message to the server asking to delete one or more messages from both clients."""
         op_code = "DELETE_MESSAGE"
-        if jsonSelected:
-            delete_request = ServerRequest.serializeJSON(version, op_code, [message_uuid, sender, recipient])
-        else:
-            delete_request = ServerRequest.serialize(version, op_code, [message_uuid, sender, recipient])
-        self.send_request(delete_request)
+        delete_message_request = ServerRequest.serialize_to_str(version, op_code, [message_uuid, sender, recipient], isJSON)
+        self.send_request(delete_message_request)
 
     def establishServerConnection(self):
         try: 
@@ -171,11 +152,9 @@ class Client:
                     data = self.socketConnection.recv(1024)
                     if data:
                         decoded_data = data.decode('utf-8')
+                        # decoded_data = ServerRequest.parse_serialized_data(data, isJSON)
                         print('Received', repr(decoded_data))
-                        if jsonSelected:
-                            self.handle_server_responseJSON(decoded_data)
-                        else:
-                            self.handle_server_response(decoded_data)
+                        self.handle_server_response(decoded_data)
                 except socket.error:
                     continue
         
@@ -186,35 +165,69 @@ class Client:
             if self.socketConnection:
                 self.socketConnection.close()
 
-    def handle_server_responseJSON(self, data):
-        """Handle different types of server responses."""
-        print("JSON data", data)
-        messages = json.loads(data)
 
+    def handle_server_response(self, data):
+        """Handle different types of server responses."""
+        """Arguments: data is an unparsed string"""
+        if isJSON:
+            # TODO: handle multiple messages
+            # Break down the messages into an array if there are multiple.
+            decoded_data = ServerRequest.decode_multiple_json(data)
+            print(decoded_data)
+            # Deserialize each object to convert it into the proper data type.
+            messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in decoded_data]
+            print("json messages", messages)
+        else:
+            messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in data.split('∞') if msg.strip()]
+            print("MESSAGES", messages)
+
+        print("handle_server-response messages", messages)
         for message in messages:
-            version = message["version"]
-            op_code = message["opcode"]
+            # decoded_data = ServerRequest.parse_serialized_data(message, isJSON)
             arguments = message["arguments"]
-            if op_code == "LOGIN_SUCCESS":
-                username = arguments[0]
-                all_users = arguments[2:]  # Get users list
+            if message["opcode"] == "LOGIN_SUCCESS":
+                print("login arguments", arguments)
+                username = arguments[1]
+                all_users = arguments[3:]
                 print(f"Logged in as: {username}")
                 print(f"Available users: {all_users}")
-                
+
                 # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
                 # Create chat UI synchronously
                 self.show_chat_ui(username, all_users)
                 # Let the UI update
                 self.root.update()
                 break  # Exit after handling login
+
+            # parts = message.split('§')
+            # if parts[2] == "LOGIN_SUCCESS":
+            #     username = parts[4]
+            #     all_users = parts[6:]  # Get users list
+            #     print(f"Logged in as: {username}")
+            #     print(f"Available users: {all_users}")
+                
+            #     # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
+            #     # Create chat UI synchronously
+            #     self.show_chat_ui(username, all_users)
+            #     # Let the UI update
+            #     self.root.update()
+            #     break  # Exit after handling login
             
-        for message in messages:   
-            op_code = message["opcode"] 
+        print("messages", messages)
+        for message in messages: 
+            # decoded_data = ServerRequest.parse_serialized_data(message, isJSON)
+            op_code = message["opcode"]
             arguments = message["arguments"]
+        
             if op_code == "SEND_MESSAGE":
+                print("arguments!", arguments)
+                username = arguments[0]
+                print("username", username)
+                print("name", arguments[1])
+                print("message", arguments[2])
                 # Display chat message
                 if hasattr(self, 'chat_ui'):
-                    self.root.after(0, lambda: self.chat_ui.display_message(message['version'], op_code))
+                    self.root.after(0, lambda: self.chat_ui.display_message(arguments[1], arguments[2]))
             
             elif op_code == "DELETE_ACCOUNT_SUCCESS":
                 messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
@@ -225,13 +238,14 @@ class Client:
                 # message_uuid = parts[3]
                 # sender = parts[4]
                 # recipient = parts[5]
-                tbd = 0
+                print("to be implemented")
 
             elif op_code == "NEW_MESSAGE":
                     print("Received new message:", message)
                     print("Has chat UI:", hasattr(self, 'chat_ui'))
                     
                     if hasattr(self, 'chat_ui'):
+                        print("ARGUMENTS FOR NEW MESSAGE", arguments)
                         sender = arguments[0]
                         message = arguments[2]
                         self.root.after(0, lambda s=sender, m=message: 
@@ -240,70 +254,49 @@ class Client:
                         print("Warning: Message received before chat UI was ready")
             
             elif op_code == "RECEIVE_MESSAGE":
-                print("Received message:", message)
+                print("Received message:", arguments)
                 if hasattr(self, 'chat_ui'):
                     sender = arguments[0]
                     message = arguments[2]
                     self.root.after(0, lambda s=sender, m=message: 
                         self.chat_ui.display_message(s, m))
-
-    def handle_server_response(self, data):
-        """Handle different types of server responses."""
-        messages = [msg for msg in data.split('∞') if msg.strip()]
-
-        for message in messages:
-            parts = message.split('§')
-            if parts[2] == "LOGIN_SUCCESS":
-                username = parts[4]
-                all_users = parts[6:]  # Get users list
-                print(f"Logged in as: {username}")
-                print(f"Available users: {all_users}")
-                
-                # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
-                # Create chat UI synchronously
-                self.show_chat_ui(username, all_users)
-                # Let the UI update
-                self.root.update()
-                break  # Exit after handling login
-            
-        print("messages", messages)
-        for message in messages:    
-            parts = message.split('§')
+               
+            # parts = message.split('§')
         
-            if parts[2] == "SEND_MESSAGE":
-                # Display chat message
-                if hasattr(self, 'chat_ui'):
-                    self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
+            # if parts[2] == "SEND_MESSAGE":
+            #     # Display chat message
+            #     if hasattr(self, 'chat_ui'):
+            #         self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
             
-            elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
-                messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
-                self.show_login_ui()
+            # elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
+            #     messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
+            #     self.show_login_ui()
 
-            elif parts[2] == "DELETE_MESSAGE":
-                # Here we need to determine which message in the UI to delete.
-                message_uuid = parts[3]
-                sender = parts[4]
-                recipient = parts[5]
+            # elif parts[2] == "DELETE_MESSAGE":
+            #     # Here we need to determine which message in the UI to delete.
+            #     message_uuid = parts[3]
+            #     sender = parts[4]
+            #     recipient = parts[5]
 
-            elif parts[2] == "NEW_MESSAGE":
-                    print("Received new message:", parts)
-                    print("Has chat UI:", hasattr(self, 'chat_ui'))
+            # elif parts[2] == "NEW_MESSAGE":
+            #         print("Received new message:", parts)
+            #         print("Has chat UI:", hasattr(self, 'chat_ui'))
                     
-                    if hasattr(self, 'chat_ui'):
-                        sender = parts[3]
-                        message = parts[5]
-                        self.root.after(0, lambda s=sender, m=message: 
-                            self.chat_ui.display_message(s, m))
-                    else:
-                        print("Warning: Message received before chat UI was ready")
+            #         if hasattr(self, 'chat_ui'):
+            #             sender = parts[3]
+            #             message = parts[5]
+            #             self.root.after(0, lambda s=sender, m=message: 
+            #                 self.chat_ui.display_message(s, m))
+            #         else:
+            #             print("Warning: Message received before chat UI was ready")
             
-            elif parts[2] == "RECEIVE_MESSAGE":
-                print("Received message:", parts)
-                if hasattr(self, 'chat_ui'):
-                    sender = parts[3]
-                    message = parts[5]
-                    self.root.after(0, lambda s=sender, m=message: 
-                        self.chat_ui.display_message(s, m))
+            # elif parts[2] == "RECEIVE_MESSAGE":
+            #     print("Received message:", parts)
+            #     if hasattr(self, 'chat_ui'):
+            #         sender = parts[3]
+            #         message = parts[5]
+            #         self.root.after(0, lambda s=sender, m=message: 
+            #             self.chat_ui.display_message(s, m))
         
     # Socket Connections & Management
     def send_request(self, message):
