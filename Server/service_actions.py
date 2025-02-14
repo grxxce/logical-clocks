@@ -31,7 +31,7 @@ def login(username, password):
             return op_code, arguments
         else:
             op_code = "LOGIN_FAILED"
-            arguments = "Unable to authenticate user"
+            arguments = ["Unable to authenticate user"]
             return op_code, arguments
     except:
         print("login: failed to authenticate user")

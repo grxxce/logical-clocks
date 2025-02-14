@@ -3,18 +3,48 @@ from UI.signup import LoginUI
 from UI.chat import ChatUI
 import tkinter as tk
 from tkinter import ttk, messagebox
-import re
 import threading
 import argparse
-from Model.ServerRequest import ServerRequest
-import json
+import logging
 
-# Add config file for versioning too!
+# Our Model Helpers
+from Model.ServerRequest import ServerRequest
+
+# Configure logging set-up. We want to log times & types of logs, as well as
+# function names & the subsequent message.
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+)
+
+# Create a logger
+logger = logging.getLogger(__name__)
+
+# TODO: make these command line arguments!
 version = 1
 isJSON = False
 
+
 class Client:
-    def __init__(self,host, port):
+    """
+    The Client class instantiates the client-facing user interface and contains
+    functionalities for managing the connection between the client and server.
+
+    This file contains three main sections, denoted by "MARK"s:
+        1. Creation of UI
+        2. Sending requests to the server
+        3. Handling server responses to requests
+    """
+
+    def __init__(self, host, port):
+        """
+        Creates the user interface and necessary threads that the client will run on.
+        Initializes necessary data about the server to aid in connection logistics.
+
+        Parameters:
+                host: the IP address of the server, inputted into the command line
+                port: the port on the host to connect to, inputted into the command line
+        """
         self.host = host
         self.port = port
         self.connectedWithServer = False
@@ -30,11 +60,13 @@ class Client:
         # Create login UI
         self.show_login_ui()
 
-        # Start socket connection in separate thread
+        # Start the socket connection in a separate thread
         self.socket_thread = threading.Thread(target=self.establishServerConnection)
-        self.socket_thread.daemon = True  # Thread will close when main program exits
+        # Thread will close when the main program exits
+        self.socket_thread.daemon = True  
         self.socket_thread.start()
-    
+
+    # MARK: User Interface Functionalities
     def show_login_ui(self):
         """Show the login UI."""
         # Clear the root window
@@ -48,7 +80,13 @@ class Client:
         )
 
     def show_chat_ui(self, username, all_users):
-        """Switch to chat UI."""
+        """
+        Switch the UI to the chat UI.
+
+        Parameters:
+                username: a string of the username of the current user
+                all_users: a list of users that the current user can message
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
             
@@ -67,19 +105,25 @@ class Client:
             username=username,
             all_users=all_users 
         )
-    
-    
+
+    # MARK: Handling Requests to the Server
     def _handle_chat_message(self, recipient, message):
-        """Handle sending chat messages."""
-        print("handle_chat_message calling send_request")
+        """
+        Handle sending chat messages.
+
+        Parameters:
+                recipient: a string of the username of the desired recipient of a message
+                message: a string that will be sent
+        """
         OP_CODE = "SEND_MESSAGE"
         chat_message = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, recipient, message], isJSON)
         self.send_request(chat_message)
+        logger.info(f"Client sent request to server to deliver message to {recipient} with message {message}.")
 
     
     def _handle_get_inbox(self):
         """Handle inbox refresh requests and return unread messages."""
-        print("handle_get_inbox calling send_request")
+        logger.info("Handling inbox refresh request.")
         unread_messages = {}
         
         # Check chat histories for unread messages
@@ -98,32 +142,53 @@ class Client:
         return list(unread_messages.keys())  # Return users with unread messages
 
     def _handle_login(self, username, password):
-        """Callback for login button."""
+        """
+        Callback for login button. 
+        Sends a login request to the server.
+
+        Parameters:
+                username: a string 
+                password: a string 
+        """
         OP_CODE = "LOGIN"
         login_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password], isJSON)
         self.send_request(login_request)
-        print("login message sent")
+        logger.info(f"Client {username} sent login request to server.")
 
     def _handle_register(self, username, password, email):
-        """Callback for register button."""
+        """
+        Callback for register button.
+        Sends a register request to the server.
+
+        Parameters:
+                username: a string 
+                password: a string 
+                email: a string
+        """
         OP_CODE = "REGISTER"
         register_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password, email], isJSON)
-        print("handle_register calling send_request")
         self.send_request(register_request)
+        logger.info(f"Client {username} sent register request to server.")
     
     def _handle_save_settings(self, settings):
-        """Handle saving user settings"""
+        """
+        Callback for the user saving settings on limiting the number of unread messages.
+        Sends a request to the server to update the notification limit.
+
+        Parameters:
+                settings: a dictionary with account setting information
+        """
         OP_CODE = "NOTIFICATION_LIMIT"
         settings_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, settings['message_history_limit']], isJSON)
-        print("handle_save_settings calling send_request")
         self.send_request(settings_request)
+        logger.info(f"Client sent request to server to update notification limit.")
 
-    # MARK: Deletion
     def _handle_delete_account(self):
         """Handle account deletion"""
         OP_CODE = "DELETE_ACCOUNT"
         delete_account_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username], isJSON)
         self.send_request(delete_account_request)
+        logger.info(f"Client sent request to have account deleted.")
         # Close the chat window and return to login
         # self.root.destroy()
 
@@ -133,64 +198,77 @@ class Client:
         op_code = "DELETE_MESSAGE"
         delete_message_request = ServerRequest.serialize_to_str(version, op_code, [message_uuid, sender, recipient], isJSON)
         self.send_request(delete_message_request)
+        logger.info(f"Client sent request to have message to {recipient} deleted.")
 
+    # MARK: Handling Server Connection & Responses
     def establishServerConnection(self):
+        """
+        Create a socket connection with the server through its host IP and port.
+        Monitor the socket connection for read and write events, and handle
+        responses accordingly by passing to the proper handler.
+        """
         try: 
-            print("Starting socket connection")
+            logger.info(f"Starting socket connection with host {self.host} on port {self.port}.")
             self.socketConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_address = (self.host, self.port)
-            print("server address: ", server_address)
 
             # Connect to the server
             self.socketConnection.connect(server_address)
-            print("Connected to the server")
             self.socketConnection.setblocking(False)
-            # Send data to the server
+            logger.info("Successfully connected to the server.")
+
+            # Handle data from and to the server
             self.connectedWithServer = True
             while self.running:
                 try:
+                    # If data has been sent to the client, retrieve it and decode it
+                    # from a byte string into a string.
                     data = self.socketConnection.recv(1024)
                     if data:
                         decoded_data = data.decode('utf-8')
-                        # decoded_data = ServerRequest.parse_serialized_data(data, isJSON)
-                        print('Received', repr(decoded_data))
                         self.handle_server_response(decoded_data)
                 except socket.error:
+                    # TODO: check if this is okay because it looks like hundreds of warnings
                     continue
         
         except Exception as e:
-            print(f"Socket error: {e}")
+            logger.error(f"An error occurred with the socket: {e}")
         
         finally:
+            # If the client closes or disconnects, then close the socket connection.
             if self.socketConnection:
                 self.socketConnection.close()
 
 
     def handle_server_response(self, data):
-        """Handle different types of server responses."""
-        """Arguments: data is an unparsed string"""
+        """
+        Handle different types of server responses.
+        Delegate to appropriate handlers & requests.
+
+        Parameters:
+                data: an unparsed string of either our custom protocol or a JSON protocol.
+        """
+        # Handle JSON and our custom protocol separately.
         if isJSON:
-            # TODO: handle multiple messages
             # Break down the messages into an array if there are multiple.
             decoded_data = ServerRequest.decode_multiple_json(data)
-            print(decoded_data)
             # Deserialize each object to convert it into the proper data type.
             messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in decoded_data]
-            print("json messages", messages)
+            logger.info(f"Parsed JSON response into the following messages from server: {messages}")
         else:
             messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in data.split('∞') if msg.strip()]
-            print("MESSAGES", messages)
+            logger.info(f"Parsed custom protocol into the following messages from server: {messages}")
 
-        print("handle_server-response messages", messages)
+        # If there are multiple messages in one response from the server, such as
+        # in the case of multiple new unread messages, handle each individually.
         for message in messages:
-            # decoded_data = ServerRequest.parse_serialized_data(message, isJSON)
             arguments = message["arguments"]
+
+            # If the user has completed a successful login, handle it first.
             if message["opcode"] == "LOGIN_SUCCESS":
-                print("login arguments", arguments)
                 username = arguments[1]
                 all_users = arguments[3:]
-                print(f"Logged in as: {username}")
-                print(f"Available users: {all_users}")
+                logger.info(f"Sucessfully logged in as: {username}. Available users: {all_users}")
 
                 # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
                 # Create chat UI synchronously
@@ -198,33 +276,19 @@ class Client:
                 # Let the UI update
                 self.root.update()
                 break  # Exit after handling login
+            if message["opcode"] == "LOGIN_FAILED":
+                error_message = arguments[0]
+                logger.info(f"Login rejected with error message: {error_message}")
+                messagebox.showinfo(f"Login Rejected", "Unable to verify account. Please try again and ensure that you input the proper username and password.")
 
-            # parts = message.split('§')
-            # if parts[2] == "LOGIN_SUCCESS":
-            #     username = parts[4]
-            #     all_users = parts[6:]  # Get users list
-            #     print(f"Logged in as: {username}")
-            #     print(f"Available users: {all_users}")
-                
-            #     # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
-            #     # Create chat UI synchronously
-            #     self.show_chat_ui(username, all_users)
-            #     # Let the UI update
-            #     self.root.update()
-            #     break  # Exit after handling login
-            
-        print("messages", messages)
+        # Handle responses from the server.
         for message in messages: 
-            # decoded_data = ServerRequest.parse_serialized_data(message, isJSON)
             op_code = message["opcode"]
             arguments = message["arguments"]
         
             if op_code == "SEND_MESSAGE":
-                print("arguments!", arguments)
+                # TODO: I think we can delete username here?
                 username = arguments[0]
-                print("username", username)
-                print("name", arguments[1])
-                print("message", arguments[2])
                 # Display chat message
                 if hasattr(self, 'chat_ui'):
                     self.root.after(0, lambda: self.chat_ui.display_message(arguments[1], arguments[2]))
@@ -234,6 +298,7 @@ class Client:
                 self.show_login_ui()
 
             elif op_code == "DELETE_MESSAGE":
+                # TODO: complete
                 # Here we need to determine which message in the UI to delete.
                 # message_uuid = parts[3]
                 # sender = parts[4]
@@ -241,76 +306,42 @@ class Client:
                 print("to be implemented")
 
             elif op_code == "NEW_MESSAGE":
-                    print("Received new message:", message)
-                    print("Has chat UI:", hasattr(self, 'chat_ui'))
-                    
+                    logger.info(f"Received new message: {message}")
+                    # Update the UI to display the new message.
                     if hasattr(self, 'chat_ui'):
-                        print("ARGUMENTS FOR NEW MESSAGE", arguments)
                         sender = arguments[0]
                         message = arguments[2]
                         self.root.after(0, lambda s=sender, m=message: 
                             self.chat_ui.display_message(s, m))
                     else:
-                        print("Warning: Message received before chat UI was ready")
+                        logger.warning("Message received before chat UI was ready")
             
             elif op_code == "RECEIVE_MESSAGE":
-                print("Received message:", arguments)
+                logger.info(f"Received message with details: {arguments}")
                 if hasattr(self, 'chat_ui'):
                     sender = arguments[0]
                     message = arguments[2]
                     self.root.after(0, lambda s=sender, m=message: 
                         self.chat_ui.display_message(s, m))
-               
-            # parts = message.split('§')
-        
-            # if parts[2] == "SEND_MESSAGE":
-            #     # Display chat message
-            #     if hasattr(self, 'chat_ui'):
-            #         self.root.after(0, lambda: self.chat_ui.display_message(parts[1], parts[2]))
-            
-            # elif parts[2] == "DELETE_ACCOUNT_SUCCESS":
-            #     messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
-            #     self.show_login_ui()
 
-            # elif parts[2] == "DELETE_MESSAGE":
-            #     # Here we need to determine which message in the UI to delete.
-            #     message_uuid = parts[3]
-            #     sender = parts[4]
-            #     recipient = parts[5]
-
-            # elif parts[2] == "NEW_MESSAGE":
-            #         print("Received new message:", parts)
-            #         print("Has chat UI:", hasattr(self, 'chat_ui'))
-                    
-            #         if hasattr(self, 'chat_ui'):
-            #             sender = parts[3]
-            #             message = parts[5]
-            #             self.root.after(0, lambda s=sender, m=message: 
-            #                 self.chat_ui.display_message(s, m))
-            #         else:
-            #             print("Warning: Message received before chat UI was ready")
-            
-            # elif parts[2] == "RECEIVE_MESSAGE":
-            #     print("Received message:", parts)
-            #     if hasattr(self, 'chat_ui'):
-            #         sender = parts[3]
-            #         message = parts[5]
-            #         self.root.after(0, lambda s=sender, m=message: 
-            #             self.chat_ui.display_message(s, m))
-        
-    # Socket Connections & Management
+    # MARK: Sending Requests & Management
     def send_request(self, message):
+        """
+        Handle the sending of requests from the client to the server
+        via the socket.
+
+        Parameters:
+                message: a serialized string ready to be sent over the wire
+        """
         try:
             if not self.connectedWithServer:
                 self.establishServerConnection()
             
             # If established successfully, then send request
-            print("sending_request sending: ", message.encode())
-            # self.socketConnection.send(message.encode('utf-8'))
             self.socketConnection.send(message.encode('utf-8'))
-        
-        except:
-            print("Exception in send_request")
+            logger.info(f"Sent request to server: {message.encode()}")
+        except Exception as e:
+            logger.error(f"Failed to send request to server for request {message}. Failed with error {e}")
 
     def run(self):
         """Start the application."""
@@ -322,32 +353,30 @@ class Client:
             if self.socketConnection:
                 self.socketConnection.close()
 
-
+# MARK: Run the client & handle command-line arguments.
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Chat Client')
-    
+
     # Add arguments
     parser.add_argument(
         '--host',
         default='localhost',
         help='Server hostname or IP (default: localhost)'
     )
-    
+
     parser.add_argument(
         '--port',
         type=int,
         default=5001,
         help='Server port (default: 5001)'
     )
-    
     return parser.parse_args()
-
 
 if __name__ == "__main__":
     # Parse command line arguments
     args = parse_arguments()
-    
+
     # Create and run client
     try:
         client = Client(host=args.host, port=args.port)
