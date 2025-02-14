@@ -40,14 +40,14 @@ def register(username, password, email):
 
 
 # Handle login requests
-# NOT THE PROBLEM
+
 def login(username, password):
     # do another thing
     try:
         if AuthHandler.authenticate_user(username=username, password=password) == True:
             # If we have a successful login, we should send over the necessary data to the user.
             setup_response = setup(username)
-            login_response = f"LOGIN_SUCCESS§User authenticated§{username}§{setup_response}"
+            login_response = f"LOGIN_SUCCESS§{username}§{setup_response}"
             return f"1§{len(login_response)}§{login_response}"
         else:
             login_response = "LOGIN_FAILED§Unable to authenticate user"
@@ -56,14 +56,34 @@ def login(username, password):
         print("login: failed to authenticate user")
 
 def setup(username):
-    # Get all possible contacts!! Send them to client when the client logs in
-    print("in setup")
-    usernames = DatabaseManager.get_contacts()
-    response = "USERS"
-    for user in usernames:
-        response += "§" + user
-    return response
+    # Get all possible contacts + the user's settings. Send them to client when the client logs in
+    try:
+        print("in setup")
+        usernames = DatabaseManager.get_contacts()
+        settings = DatabaseManager.get_settings(username)
+        response = str(settings) + "§" 
+        print("response AFTER SETTINGS", response)
 
+        for user in usernames:
+            response += user + "§"
+        
+        print("response AFTER People", response)
+        return response
+    except Exception as e:
+        print(f"SETUP FAIL: {str(e)}")
+        return False
+
+def save_settings(username, settings):
+    # Update the user's settings in the database
+    print("calling update settings")
+    DatabaseManager.save_settings(username, settings)
+    return "SETTINGS_SAVED§Settings saved"
+
+def get_settings(username):
+    # Get the user's settings from the database
+    print("calling get settings")
+    settings = DatabaseManager.get_settings(username)
+    return "GET_SETTINGS_SUCCESS§" + str(settings)
 
 def delete_message():
     # could be one message or multiple

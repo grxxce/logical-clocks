@@ -2,10 +2,11 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
 class ChatUI:
-    def __init__(self, root, callbacks, username, all_users):
+    def __init__(self, root, callbacks, username, all_users, settings=30):
         self.root = root
         self.username = username
         self.all_users = all_users
+        self.settings = tk.IntVar(value=settings)
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
         self.new_messages = {}
@@ -16,10 +17,11 @@ class ChatUI:
         self.get_inbox_callback = callbacks.get('get_inbox')
         self.save_settings_callback = callbacks.get('save_settings')
         self.delete_account_callback = callbacks.get('delete_account')
+        self.delete_message_callback = callbacks.get('delete_message')
         
         # Configure the window
         self.root.title(f"Chat - {username}")
-        self.root.geometry("1000x700")
+        self.root.geometry("600x700")
         
         # Style configuration
         self.style = ttk.Style()
@@ -29,7 +31,7 @@ class ChatUI:
         self.style.configure('TButton', font=('Arial', 11))
         
         self.create_widgets()
-        self._refresh_inbox()  # Load initial inbox
+        self._refresh_inbox()  
 
         self.update_search_results(
             [user for user in all_users if user != username]
@@ -50,12 +52,17 @@ class ChatUI:
         
         # Create inbox panel (middle of left column)
         self.create_inbox_panel()
+
+        # Create sent messages panel
+        self.create_sent_panel()
         
         # Create settings panel (bottom of left column)
         self.create_settings_panel()
         
         # Right Column (Chat Area)
         self.create_chat_panel()
+
+        
         
     def create_search_panel(self):
         """Create the search panel at the top of left column"""
@@ -104,7 +111,111 @@ class ChatUI:
             text="Refresh Inbox",
             command=self._refresh_inbox
         ).pack(fill=tk.X)
+    def create_sent_panel(self):
+        """Create the sent messages panel below inbox panel"""
+        self.sent_frame = ttk.LabelFrame(self.left_column, text="Delete Sent Message", padding="5")
+        self.sent_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Sent messages list
+        self.sent_list = tk.Listbox(
+            self.sent_frame,
+            selectmode=tk.SINGLE,
+            font=('Arial', 11)
+        )
+        self.sent_list.pack(fill=tk.BOTH, expand=True, pady=(0, 5))
+        self.sent_list.bind('<<ListboxSelect>>', self._on_sent_select)
+        
+        # Refresh button
+        ttk.Button(
+            self.sent_frame,
+            text="Refresh Sent",
+            command=self._refresh_sent
+        ).pack(fill=tk.X)
+
+    def _refresh_sent(self):
+        """Refresh sent messages list"""
+        self.sent_list.delete(0, tk.END)
+        
+        # Collect all sent messages across all conversations
+        sent_messages = []
+        for recipient, messages in self.chat_histories.items():
+            for msg in messages:
+                if msg['sender'] == self.username:
+                    sent_messages.append({
+                        'recipient': recipient,
+                        'message': msg['message'],
+                        'timestamp': msg['timestamp']
+                    })
+        
+        # Sort by timestamp (newest first)
+        sent_messages.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Display in list
+        for msg in sent_messages:
+            preview = f"{msg['recipient']} ({msg['timestamp']}): {msg['message'][:30]}..."
+            self.sent_list.insert(tk.END, preview)
+            
+        print(f"Updated sent messages list with {len(sent_messages)} messages")
+
+    def _on_sent_select(self, event):
+        """Handle sent message selection and deletion"""
+        print("on_sent_select")
+        selection = self.sent_list.curselection()
+        if not selection:
+            return
+            
+        # Get selected message
+        index = selection[0]
+        preview = self.sent_list.get(index)
+        
+        # Parse message details from preview
+        # Format is "recipient (timestamp): message..."
+        try:
+            recipient = preview.split(' (')[0]
+            timestamp = preview.split('(')[1].split(')')[0]
+            message = preview.split('): ')[1].split('...')[0]
+            
+            print(f"Selected message - Recipient: {recipient}, Time: {timestamp}, Message: {message}")
+            
+            # Confirm deletion
+            if not messagebox.askyesno("Delete Message", 
+                                     f"Delete this message sent to {recipient}?"):
+                return
+            
+            # Send delete request to server
+            if self.delete_message_callback:
+                delete_request = {
+                    'sender': self.username,
+                    'recipient': recipient,
+                    'message': message,
+                    'timestamp': timestamp
+                }
+                print(f"Sending delete request: {delete_request}")
+                self.delete_message_callback(delete_request)
+            
+            # Remove from local chat histories
+            self._remove_message_from_history(recipient, message, timestamp)
+            
+            # Refresh displays
+            self._refresh_sent()
+            if self.selected_recipient == recipient:
+                self.display_stored_messages()
+                
+        except Exception as e:
+            print(f"Error processing sent message deletion: {e}")
+            messagebox.showerror("Error", "Failed to process message deletion")
     
+    def _remove_message_from_history(self, recipient, message, timestamp):
+        """Remove a message from chat history"""
+        if recipient in self.chat_histories:
+            # Filter out the specific message
+            self.chat_histories[recipient] = [
+                msg for msg in self.chat_histories[recipient]
+                if not (msg['message'] == message and 
+                       msg['timestamp'] == timestamp)
+            ]
+            print(f"Removed message from chat history with {recipient}")
+
     def create_chat_panel(self):
         """Create the chat panel (right side)"""
         self.chat_frame = ttk.LabelFrame(self.main_frame, text="Select a conversation", padding="5")
@@ -181,6 +292,9 @@ class ChatUI:
         """Updates chat history (but does not display messages)"""
         print("display_message: ", from_user, message)
         timestamp = datetime.now().strftime('%H:%M')
+
+        if from_user == self.username:
+            self._refresh_sent()
         
         # Store message in chat history
         if from_user not in self.chat_histories:
@@ -225,6 +339,7 @@ class ChatUI:
         if not hasattr(self, 'selected_recipient') or not self.selected_recipient:
             messagebox.showwarning("Warning", "Please select a user to chat with first.")
             return
+        
             
         message = self.message_input.get().strip()
         if message:
@@ -252,6 +367,7 @@ class ChatUI:
             
             # Clear input
             self.message_input.delete(0, tk.END)
+            self._refresh_sent()
     def _format_sent_message(self, message, timestamp):
         """Format and display a sent message"""
         self.chat_display.insert(tk.END, f"{timestamp} You: ", 'sent')
@@ -281,7 +397,7 @@ class ChatUI:
     
     def _on_user_select(self, event):
         """Handle user selection from search results"""
-        print("SELECTED USER DETECTED")
+        print("Selected user")
         selection = self.search_results.curselection()
         if selection:
             self.selected_recipient = self.search_results.get(selection[0])
@@ -326,49 +442,50 @@ class ChatUI:
     
     def _on_inbox_select(self, event):
         """Handle inbox conversation selection"""
-        # selection = self.inbox_list.curselection()
-        # print("selection:", selection)
-        # if not selection:
-        #     return
+        selection = self.inbox_list.curselection()
+        print("selection:", selection)
+        if not selection:
+            return
+
             
-        # # Get selected message data
-        # selected_index = selection[0]
-        # selected_message = self.new_messages[selected_index]
-        # sender = selected_message['sender']
-        # message = selected_message['message']
-        # timestamp = selected_message['timestamp']
+        # Get selected message data
+        selected_index = selection[0]
+        selected_message = self.new_messages[selected_index]
+        sender = selected_message['sender']
+        message = selected_message['message']
+        timestamp = selected_message['timestamp']
         
-        # print(f"Selected message from {sender}: {message}")
+        print(f"Selected message from {sender}: {message}")
         
-        # # Remove this specific message from new_messages
-        # if sender in self.new_messages:
-        #     # Find and remove the specific message
-        #     self.new_messages[sender] = [
-        #         msg for msg in self.new_messages[sender]
-        #         if not (msg['message'] == message and 
-        #                msg['timestamp'] == timestamp)
-        #     ]
+        # Remove this specific message from new_messages
+        if sender in self.new_messages:
+            # Find and remove the specific message
+            self.new_messages[sender] = [
+                msg for msg in self.new_messages[sender]
+                if not (msg['message'] == message and 
+                       msg['timestamp'] == timestamp)
+            ]
             
-        #     # If no more messages from this sender, remove the sender
-        #     if not self.new_messages[sender]:
-        #         del self.new_messages[sender]
+            # If no more messages from this sender, remove the sender
+            if not self.new_messages[sender]:
+                del self.new_messages[sender]
         
-        # # Add message to chat history
-        # if sender not in self.chat_histories:
-        #     self.chat_histories[sender] = []
-        # self.chat_histories[sender].append({
-        #     'sender': sender,
-        #     'message': message,
-        #     'timestamp': timestamp
-        # })
+        # Add message to chat history
+        if sender not in self.chat_histories:
+            self.chat_histories[sender] = []
+        self.chat_histories[sender].append({
+            'sender': sender,
+            'message': message,
+            'timestamp': timestamp
+        })
         
-        # # Set as selected recipient and display chat
-        # self.selected_recipient = sender
-        # self.chat_frame.configure(text=f"Chat with {sender}")
-        # self.display_stored_messages()
+        # Set as selected recipient and display chat
+        self.selected_recipient = sender
+        self.chat_frame.configure(text=f"Chat with {sender}")
+        self.display_stored_messages()
         
-        # # Refresh inbox to update display
-        # self._refresh_inbox()
+        # Refresh inbox to update display
+        self._refresh_inbox()
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
@@ -391,12 +508,12 @@ class ChatUI:
         all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
         
         # Take most recent 50 messages
-        recent_messages = all_messages[:50]
+        print("taking most recent", self.settings.get(), "messages")
+        recent_messages = all_messages[:int(self.settings.get())]
         
         # Update inbox display
         for msg in recent_messages:
             self.inbox_list.insert(tk.END, msg['preview'])
-            # Store full message data in the listbox
             self.inbox_list.message_data = recent_messages
             
         print(f"Updated inbox with {len(recent_messages)} messages")
@@ -423,13 +540,12 @@ class ChatUI:
             font=('Arial', 10)
         ).pack(side=tk.LEFT)
         
-        self.history_var = tk.StringVar(value="50")  # Default value
         history_spinbox = ttk.Spinbox(
             history_frame,
             from_=10,
             to=200,
             width=5,
-            textvariable=self.history_var,
+            textvariable=self.settings,
             command=self._on_history_change
         )
         history_spinbox.pack(side=tk.RIGHT)
@@ -465,23 +581,19 @@ class ChatUI:
     def _on_history_change(self):
         """Handle message history limit change"""
         try:
-            value = int(self.history_var.get())
-            if value < 10:
-                self.history_var.set("10")
-            elif value > 200:
-                self.history_var.set("200")
+            print("on_history_change")
+            self._save_settings()
         except ValueError:
+            print("invalid history limit")
             self.history_var.set("50")  # Reset to default if invalid
     
     def _save_settings(self):
         """Save user settings"""
+        print("in save settings")
         try:
-            history_limit = int(self.history_var.get())
             # Call callback to save settings
             if hasattr(self, 'save_settings_callback'):
-                self.save_settings_callback({
-                    'message_history_limit': history_limit
-                })
+                self.save_settings_callback(int(self.settings.get()))
             messagebox.showinfo("Success", "Settings saved successfully!")
         except ValueError:
             messagebox.showerror("Error", "Invalid settings values")

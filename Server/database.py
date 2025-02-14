@@ -80,3 +80,41 @@ class DatabaseManager:
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
             return False
+
+    def get_settings(username):
+        print("IN GET SETTINGS")
+        try:
+            with sqlite3.connect('users.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT settings FROM users WHERE username = ?', (username,))
+                result = cursor.fetchone()[0]
+                print("result after settings fetch", result)
+                return result
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return False
+    
+    def save_settings(username, settings):
+        try:
+            with sqlite3.connect('users.db') as conn:
+                cursor = conn.cursor()
+                cursor.execute('UPDATE users SET settings = ? WHERE username = ?', (settings, username))
+                conn.commit()
+                print("database saved: ", settings)
+                return True
+        
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return False
+
+    # def update_settings(username, settings):
+    #     # Update the user's settings in the database
+    #     try:
+    #         with sqlite3.connect('users.db') as conn:
+    #             print("trying to update settings")
+    #             cursor = conn.cursor()
+    #             cursor.execute('UPDATE users SET settings = ? WHERE username = ?', (settings, username))
+    #             conn.commit()
+    #             return f"SETTINGS_SAVED§{settings}"
+    #     except Exception as e:
+    #         print(f"Unexpected error: {str(e)}")

@@ -43,7 +43,26 @@ class Client:
             register_callback=self._handle_register
         )
 
-    def show_chat_ui(self, username, all_users):
+    def _handle_delete_message(self, delete_request):
+        """Handle message deletion request"""
+        try:
+            # Format: version§DELETE_MESSAGE§sender§recipient§message§timestamp
+            delete_message = (
+                f"{1}§DELETE_MESSAGE§"
+                f"{delete_request['sender']}§"
+                f"{delete_request['recipient']}§"
+                f"{delete_request['message']}§"
+                f"{delete_request['timestamp']}"
+            )
+            
+            print(f"Sending delete message request: {delete_message}")
+            self.send_request(delete_message)
+            
+        except Exception as e:
+            print(f"Error sending delete request: {e}")
+            messagebox.showerror("Error", "Failed to send delete request")
+
+    def show_chat_ui(self, username, settings, all_users):
         """Switch to chat UI."""
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -52,6 +71,7 @@ class Client:
             'send_message': self._handle_chat_message,
             'get_inbox': self._handle_get_inbox,
             'save_settings': self._handle_save_settings,
+            'delete_message': self._handle_delete_message,
             'delete_account': self._handle_delete_account
         }
         
@@ -61,7 +81,8 @@ class Client:
             root=self.root,
             callbacks=callbacks,
             username=username,
-            all_users=all_users 
+            all_users=all_users, 
+            settings=settings
         )
     
     def _handle_chat_message(self, recipient, message):
@@ -111,17 +132,17 @@ class Client:
     
     def _handle_save_settings(self, settings):
         """Handle saving user settings"""
-        settings_request = f"SETTINGS§{self.current_username}§{settings['message_history_limit']}"
+        settings_request = f"SAVE_SETTINGS§{self.current_username}§{settings}"
         print("handle_save_settings calling send_request")
-        self.send_request(settings_request)
+        message = f"{version}§{len(settings_request)}§{settings_request}"
+        self.send_request(message)
 
     def _handle_delete_account(self):
         """Handle account deletion"""
         delete_request = f"DELETE_ACCOUNT§{self.current_username}"
         message = f"{version}§{len(delete_request)}§{delete_request}"
         self.send_request(message)
-        # Close the chat window and return to login
-        # self.root.destroy()
+        self.root.destroy()
 
     def establishServerConnection(self):
         try: 
@@ -160,30 +181,18 @@ class Client:
         for message in messages:
             parts = message.split('§')
             if parts[2] == "LOGIN_SUCCESS":
-                username = parts[4]
-                all_users = parts[6:]  # Get users list
+                username = parts[3]
+                settings = parts[4]
+                all_users = parts[5:]  # Get users list
                 print(f"Logged in as: {username}")
                 print(f"Available users: {all_users}")
                 
                 # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
                 # Create chat UI synchronously
-                self.show_chat_ui(username, all_users)
+                self.show_chat_ui(username, settings, all_users)
                 # Let the UI update
                 self.root.update()
                 break  # Exit after handling login
-            
-        print("messages", messages)
-        for message in messages:    
-            parts = message.split('§')
-            # if parts[2] == "LOGIN_SUCCESS":
-            #     # Switch to chat UI on the main thread
-            #     username = parts[4]
-            #     all_users = parts[6:]  # Store all users for searching
-            #     print(f"Logged in as: {username}")
-            #     print(f"Available users: {all_users}")
-                
-            #     # Switch to chat UI and pass all users
-            #     self.root.after(0, lambda: self.show_chat_ui(username, all_users))
         
             if parts[2] == "SEND_MESSAGE":
                 # Display chat message
@@ -213,7 +222,20 @@ class Client:
                     message = parts[5]
                     self.root.after(0, lambda s=sender, m=message: 
                         self.chat_ui.display_message(s, m))
-        
+
+            elif parts[2] == "DELETE_RECEIVED_MESSAGE":
+                print("Received delete message request:", parts)
+                if hasattr(self, 'chat_ui'):
+                    sender = parts[3]
+                    message = parts[5]
+                    self.root.after(0, lambda s=sender, m=message: 
+                        self.chat_ui.display_message(s, m))
+
+            elif parts[2] == "SETTINGS_SAVED":
+                print("Settings saved:", parts)
+                if hasattr(self, 'chat_ui'):
+                    self.chat_ui.settings = parts[3]
+
     # Socket Connections & Management
     def send_request(self, message):
         try:

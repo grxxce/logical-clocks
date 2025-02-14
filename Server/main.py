@@ -3,7 +3,7 @@ import socket
 import selectors
 import types
 from collections import defaultdict
-from service_actions import register, login, delete_account, delete_message, update_notification_limit, parse_request
+from service_actions import register, login, delete_account, save_settings, update_notification_limit, parse_request, get_settings
 from Model.ClientRequest import ClientRequest
 
 # todo: bot up with ipp address as command line argument 
@@ -140,13 +140,10 @@ def handle_client_requests(sock, data):
         match opcode:         
             case "REGISTER":
                 response = register(*arguments)
-            
             case "LOGIN":
                 response = login(*arguments)
                 # Ensure that we add this connection to our currently active
                 # connections.
-                
-                # Send success immediately
                 if response.split("§")[2] == "LOGIN_SUCCESS":
                     data.outb = response.encode("utf-8")
                     sent = sock.send(data.outb)             # Send the response over the wire.
@@ -155,7 +152,6 @@ def handle_client_requests(sock, data):
                     active_connections[arguments[0]] = sock
                     check_pending_messages(arguments[0])
                     response = ""
-            
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
             case "DELETE_MESSAGE":
@@ -164,6 +160,14 @@ def handle_client_requests(sock, data):
                 response = delete_account(*arguments)
             case "NOTIFICATION_LIMIT":
                 response = update_notification_limit(*arguments)
+            case "DELETE_MESSAGE":
+                response = delete_message(*arguments)
+            case "GET_SETTINGS":
+                response = get_settings(*arguments)
+                response = ClientRequest.serialize(VERSION, "GET_SETTINGS_SUCCESS", [response])
+            case "SAVE_SETTINGS":
+                response = save_settings(*arguments)
+                response = ClientRequest.serialize(VERSION, [response])
             case _:
                 response = "Nothing to do."
 
@@ -179,6 +183,11 @@ def handle_client_requests(sock, data):
         # TODO: make this better!!
         print(f"handling_client_reponse: error handling data {data}")
 
+def delete_message(sender, recipient, message, timestamp):
+    print("deleting message")
+    OP_CODE = "DELETE_RECEIVED_MESSAGE"
+    request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message, timestamp])
+    return request
 
 def send_message(sender, recipient, message):
     """ADD COMMENTS"""

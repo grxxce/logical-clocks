@@ -21,7 +21,8 @@ class AuthHandler:
                     password_hash TEXT NOT NULL,
                     email TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP
+                    last_login TIMESTAMP,
+                    settings INTEGER DEFAULT 50
                 )
             ''')
             conn.commit()
