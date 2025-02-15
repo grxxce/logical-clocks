@@ -93,7 +93,7 @@ def setup(username):
         for user in usernames:
             arguments.append(user)
         
-        print("response AFTER People", response)
+        print("response AFTER People", arguments)
         return arguments
     except Exception as e:
         print(f"SETUP FAIL: {str(e)}")

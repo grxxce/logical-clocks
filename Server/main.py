@@ -3,7 +3,7 @@ import socket
 import selectors
 import types
 from collections import defaultdict
-from service_actions import register, login, delete_account, delete_message, update_notification_limit, get_settings
+from service_actions import register, login, delete_account, delete_message, update_notification_limit, get_settings, save_settings
 from Model.SerializationManager import SerializationManager as SM
 import logging
 
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 if not len(sys.argv) == 4 and not len(sys.argv) == 3:
     sys.exit("Please follow the proper usage: python3 main.py PORT VERSION=1")
 
-isJSON = False
+isJSON = True
 PORT = int(sys.argv[1])
 
 if sys.argv[2]:
@@ -205,9 +205,10 @@ def handle_client_requests(sock, data):
 
 def delete_message(sender, recipient, message, timestamp):
     print("deleting message")
-    OP_CODE = "DELETE_RECEIVED_MESSAGE"
-    request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message, timestamp])
-    return request
+    # OP_CODE = "DELETE_RECEIVED_MESSAGE"
+    # request = SM.serialize_to_str(VERSION, OP_CODE, [sender, recipient, message, timestamp], isJSON)
+    # return request
+    pass
 
 def send_message(sender, recipient, message):
     """
