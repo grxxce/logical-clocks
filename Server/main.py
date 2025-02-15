@@ -5,6 +5,7 @@ import types
 from collections import defaultdict
 from service_actions import register, login, delete_account, delete_message, update_notification_limit, get_settings, save_settings
 from Model.SerializationManager import SerializationManager as SM
+import argparse
 import logging
 
 """
@@ -14,9 +15,13 @@ Its handlers parse and respond to client requests.
 
 To launch the server, we recommend using PORT = 5001 or 5002 and following the usage below.
 
-Proper usage to launch server:
+Example usage to launch server:
     
-    python3 main.py PORT VERSION=1
+    python3 main.py --port 5001 --version 1
+
+Example to use JSON:
+
+    python3 main.py --port 5001 --version 1 --isJSON true
 """
 
 # Configure logging set-up. We want to log times & types of logs, as well as
@@ -29,18 +34,40 @@ logging.basicConfig(
 # Create a logger
 logger = logging.getLogger(__name__)
 
-# MARK: Configuration
+# MARK: Configuration & handle command-line arguments.
 # We will set up our port, version, and protocol through command line arguments.
-if not len(sys.argv) == 4 and not len(sys.argv) == 3:
-    sys.exit("Please follow the proper usage: python3 main.py PORT VERSION=1")
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Chat Client')
 
-isJSON = True
-PORT = int(sys.argv[1])
+    # Add arguments
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=5001,
+        help='Server port (default: 5001)'
+    )
 
-if sys.argv[2]:
-    VERSION = int(sys.argv[2])
-else:
-    VERSION = 1
+    parser.add_argument(
+        '--version',
+        type=int,
+        default=1,
+        help="Version to use (default: 1)"
+    )
+
+    parser.add_argument(
+        '--isJSON',
+        type=bool,
+        default=False,
+        help='Do not include flag unless you want to use JSON protocol (default: False)'
+    )
+    return parser.parse_args()
+
+# Set up arguments.
+args = parse_arguments()
+PORT = args.port
+VERSION = args.version
+isJSON = args.isJSON
 
 # MARK: Prepare Sockets & Selectors
 selector = selectors.DefaultSelector()

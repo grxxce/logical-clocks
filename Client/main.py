@@ -20,11 +20,6 @@ logging.basicConfig(
 # Create a logger
 logger = logging.getLogger(__name__)
 
-# TODO: make these command line arguments!
-version = 1
-isJSON = True
-
-
 class Client:
     """
     The Client class instantiates the client-facing user interface and contains
@@ -36,7 +31,7 @@ class Client:
         3. Handling server responses to requests
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, version, isJSON):
         """
         Creates the user interface and necessary threads that the client will run on.
         Initializes necessary data about the server to aid in connection logistics.
@@ -47,6 +42,8 @@ class Client:
         """
         self.host = host
         self.port = port
+        self.version = version
+        self.isJSON = isJSON
         self.connectedWithServer = False
         self.socketConnection = None
         self.running = True
@@ -133,7 +130,7 @@ class Client:
                 message: a string that will be sent
         """
         OP_CODE = "SEND_MESSAGE"
-        chat_message = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, recipient, message], isJSON)
+        chat_message = ServerRequest.serialize_to_str(self.version, OP_CODE, [self.current_username, recipient, message], self.isJSON)
         self.send_request(chat_message)
         logger.info(f"Client sent request to server to deliver message to {recipient} with message {message}.")
 
@@ -168,7 +165,7 @@ class Client:
                 password: a string 
         """
         OP_CODE = "LOGIN"
-        login_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password], isJSON)
+        login_request = ServerRequest.serialize_to_str(self.version, OP_CODE, [username, password], self.isJSON)
         self.send_request(login_request)
         logger.info(f"Client {username} sent login request to server.")
 
@@ -183,7 +180,7 @@ class Client:
                 email: a string
         """
         OP_CODE = "REGISTER"
-        register_request = ServerRequest.serialize_to_str(version, OP_CODE, [username, password, email], isJSON)
+        register_request = ServerRequest.serialize_to_str(self.version, OP_CODE, [username, password, email], self.isJSON)
         self.send_request(register_request)
         logger.info(f"Client {username} sent register request to server.")
     
@@ -198,14 +195,14 @@ class Client:
         
         OP_CODE = "SAVE_SETTINGS"
         arguments = [self.current_username, settings]
-        settings_request = ServerRequest.serialize_to_str(version, OP_CODE, arguments, isJSON)
+        settings_request = ServerRequest.serialize_to_str(self.version, OP_CODE, arguments, self.isJSON)
         self.send_request(settings_request)
         logger.info(f"Client sent request to server to update notification limit.")
 
     def _handle_delete_account(self):
         """Handle account deletion"""
         OP_CODE = "DELETE_ACCOUNT"
-        delete_account_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username], isJSON)
+        delete_account_request = ServerRequest.serialize_to_str(self.version, OP_CODE, [self.current_username], self.isJSON)
         self.send_request(delete_account_request)
         logger.info(f"Client sent request to have account deleted.")
         # Close the chat window and return to login
@@ -269,14 +266,14 @@ class Client:
                 data: an unparsed string of either our custom protocol or a JSON protocol.
         """
         # Handle JSON and our custom protocol separately.
-        if isJSON:
+        if self.isJSON:
             # Break down the messages into an array if there are multiple.
             decoded_data = ServerRequest.decode_multiple_json(data)
             # Deserialize each object to convert it into the proper data type.
-            messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in decoded_data]
+            messages = [ServerRequest.parse_serialized_data(msg, self.isJSON) for msg in decoded_data]
             logger.info(f"Parsed JSON response into the following messages from server: {messages}")
         else:
-            messages = [ServerRequest.parse_serialized_data(msg, isJSON) for msg in data.split('∞') if msg.strip()]
+            messages = [ServerRequest.parse_serialized_data(msg, self.isJSON) for msg in data.split('∞') if msg.strip()]
             logger.info(f"Parsed custom protocol into the following messages from server: {messages}")
 
         # If there are multiple messages in one response from the server, such as
@@ -287,11 +284,10 @@ class Client:
             # If the user has completed a successful login, handle it first.
             if message["opcode"] == "LOGIN_SUCCESS":
                 username = arguments[1]
-                settings = arguments[2] #TODO: check
+                settings = arguments[2]
                 all_users = arguments[3:]
                 logger.info(f"Sucessfully logged in as: {username}. Available users: {all_users}")
 
-                # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
                 # Create chat UI synchronously
                 self.show_chat_ui(username, settings, all_users)
                 # Let the UI update
@@ -319,7 +315,6 @@ class Client:
             arguments = message["arguments"]
         
             if op_code == "SEND_MESSAGE":
-                # TODO: I think we can delete username here?
                 username = arguments[0]
                 # Display chat message
                 if hasattr(self, 'chat_ui'):
@@ -416,6 +411,20 @@ def parse_arguments():
         default=5001,
         help='Server port (default: 5001)'
     )
+
+    parser.add_argument(
+        '--version',
+        type=int,
+        default=1,
+        help="Version to use (default: 1)"
+    )
+
+    parser.add_argument(
+        '--isJSON',
+        type=bool,
+        default=False,
+        help='Do not include flag unless you want to use JSON protocol (default: False)'
+    )
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -424,7 +433,7 @@ if __name__ == "__main__":
 
     # Create and run client
     try:
-        client = Client(host=args.host, port=args.port)
+        client = Client(host=args.host, port=args.port, version=args.version, isJSON=args.isJSON)
         client.run()
     except Exception as e:
         print(f"Error starting client: {e}")
