@@ -78,25 +78,26 @@ The application supports **two protocols**:
 
 ### Command-Line Options
 
-Both client and server can run in either JSON mode or custom-protocol mode. To use the JSON protocol, simply include the `--json` flag when starting an application.
+Both client and server can run in either JSON mode or custom-protocol mode. To use the JSON protocol, simply include the `--isJSON true` flag when starting an application.
 
 ### Starting the Server
 From the project root, start the server with:
 ```bash
-python3 Server/main.py 5001 1 --json
+python3 Server/main.py --port 5001 --version 1
 ```
 - `5001` is the port number.
 - `1` is the protocol version.
-- Include `--json` to use the JSON protocol. Omit this flag to use the custom delimiter-based protocol.
+- Include `--isJSON true` to use the JSON protocol. Omit this flag to use the custom delimiter-based protocol.
 
 ### Starting the Client
 From the project root, start the client with:
 ```bash
-python3 Client/main.py --host 10.250.166.71 --port 5001 --json
+python3 Client/main.py --host your_ip --port 5001 --version 1
 ```
 - `--host` specifies the server's IP address.
 - `--port` specifies the server's port.
-- Include `--json` if you want the client to communicate with the server using the JSON protocol.
+- `--version` specifies the server's port.
+- Include `--isJSON true` if you want the client to communicate with the server using the JSON protocol.
 
 ## Setup and Installation
 
@@ -171,15 +172,6 @@ This runs tests for authentication, messaging, database operations, UI component
 3. **Session Management**
    - Active session tracking and proper session cleanup upon disconnection.
 
-## Development Guidelines
-
-### Adding New Features
-1. Update the protocol specification as needed.
-2. Implement the server-side logic in `auth_handler.py`, `database.py`, or `service_actions.py`.
-3. Extend the client-side features in `communication_manager.py` or UI components.
-4. Update existing test cases and add new ones in the `tests/` directory.
-5. Document all changes in the README and inline code docstrings.
-
 ## Troubleshooting
 
 ### Common Issues
@@ -191,6 +183,9 @@ This runs tests for authentication, messaging, database operations, UI component
    - Check file permissions for the SQLite database file.
    - Ensure the database schema is intact.
    - Delete users.db if needed.
+  3. **Parsing Errors**
+   - Ensure that both the server and client are either using JSON parsing, or the custom parsing.
+   - Check by ensuring that both were run using the isJSON flag or without it. A mismatch will lead to errors. 
 
 ## Future Improvements
 
