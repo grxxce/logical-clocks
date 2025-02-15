@@ -27,28 +27,30 @@ DIY-WIRE-PROTOCOL/
 ```
 
 ### Components
-
 #### Client Side
 - **UI Components** (`Client/UI/`)
-  - **chat.py**: Main chat interface with message display, user search, inbox management, and settings.
+  - **chat.py**: Main chat interface featuring message display, user search, inbox management, and settings.
   - **signup.py**: User registration (and login) interface.
-  - **login.py**: Login form interface.
+  - *(Note: The dedicated `login.py` file has been merged into or replaced by the signup interface.)*
 - **Core Modules** (`Client/`)
-  - **main.py**: Application entry point, socket management, and command-line argument parsing.
-  - **communication_manager.py**: Handles all communications with the server.
-  - **middleware.py**: Processes messages, handles protocol implementation, and routes commands.
+  - **main.py**: Application entry point, handles socket management and command-line argument parsing.
+  - **communication_manager.py**: Manages all communications with the server.
+  - **middleware.py**: Processes messages, implements the protocol, and routes commands.
 - **Model** (`Client/Model/`)
-  - **ServerRequest.py**: Provides functions to serialize and deserialize requests and responses using both the custom and JSON protocols.
+  - **ServerRequest.py**: Provides functions to serialize and deserialize requests/responses using either the custom or JSON protocol.
+- **Tests**
+  - **test_client.py**: Contains test cases for client-side functionality including protocol parsing and UI interactions.
 
 #### Server Side
 - **Core Modules** (`Server/`)
-  - **main.py**: Server entry point, handles client connections, and manages the socket server.
-  - **auth_handler.py**: Manages user authentication and registration.
-  - **database.py**: Handles all database operations via SQLite (automatically initialized on first run).
-  - **service_actions.py**: Contains business logic to handle different types of client requests.
+  - **main.py**: Server entry point that manages client connections and the socket server.
+  - **auth_handler.py**: Handles user authentication and registration.
+  - **database.py**: Manages all database operations via SQLite (automatically set up on first run).
+  - **service_actions.py**: Implements business logic to handle different types of client requests.
+  - **test_server.py**: Contains server-side tests (e.g., for serialization and protocol parsing).
 - **Model** (`Server/Model/`)
-  - **ClientRequest.py**: Parses and validates incoming client requests.
-  - **SerializationManager.py** (if present): Contains functions for serializing responses to the client using either protocol.
+  - **SerializationManager.py**: Provides functions for serializing responses and parsing requests using either protocol.
+
 
 ## Protocol Specification
 
