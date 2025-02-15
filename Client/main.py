@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: make these command line arguments!
 version = 1
-isJSON = False
+isJSON = True
 
 
 class Client:
@@ -81,22 +81,18 @@ class Client:
 
     def _handle_delete_message(self, delete_request):
         """Handle message deletion request"""
-        try:
-            # Format: version§DELETE_MESSAGE§sender§recipient§message§timestamp
-            delete_message = (
-                f"{1}§DELETE_MESSAGE§"
-                f"{delete_request['sender']}§"
-                f"{delete_request['recipient']}§"
-                f"{delete_request['message']}§"
-                f"{delete_request['timestamp']}"
-            )
+        # try:
+        #     # Format: version§DELETE_MESSAGE§sender§recipient§message§timestamp
+        #     OP_CODE = "DELETE_MESSAGE"
+        #     arguments = [delete_request['sender'], delete_request['recipient'], delete_request['message'], delete_request['timestamp']]
+        #     delete_message = ServerRequest.serialize_to_str(version, OP_CODE, arguments, isJSON)
+        #     self.send_request(delete_message)
+        #     logger.info(f"Client sent request to have message to {recipient} deleted.")
             
-            print(f"Sending delete message request: {delete_message}")
-            self.send_request(delete_message)
-            
-        except Exception as e:
-            print(f"Error sending delete request: {e}")
-            messagebox.showerror("Error", "Failed to send delete request")
+        # except Exception as e:
+        #     print(f"Error sending delete request: {e}")
+        #     messagebox.showerror("Error", "Failed to send delete request")
+        pass
 
     def show_chat_ui(self, username, settings, all_users):
         """
@@ -216,13 +212,13 @@ class Client:
         self.root.destroy()
 
 
-    def _handle_delete_message(self, message_uuid, sender, recipient):
+    # def _handle_delete_message(self, message_uuid, sender, recipient):
         """Handle the deletion of messages on both a sender & recipients' devices.
            Send a message to the server asking to delete one or more messages from both clients."""
-        op_code = "DELETE_MESSAGE"
-        delete_message_request = ServerRequest.serialize_to_str(version, op_code, [message_uuid, sender, recipient], isJSON)
-        self.send_request(delete_message_request)
-        logger.info(f"Client sent request to have message to {recipient} deleted.")
+        # op_code = "DELETE_MESSAGE"
+        # delete_message_request = ServerRequest.serialize_to_str(version, op_code, [message_uuid, sender, recipient], isJSON)
+        # self.send_request(delete_message_request)
+        # logger.info(f"Client sent request to have message to {recipient} deleted.")
 
     # MARK: Handling Server Connection & Responses
     def establishServerConnection(self):
@@ -310,6 +306,7 @@ class Client:
             elif message["opcode"] == "REGISTER_SUCCESS":
                 logger.info(f"Registration succeeded.")
                 messagebox.showinfo("Registration Succeeded.", "Please proceed to login.")
+            
             elif message["opcode"] == "REGISTER_FAILED":
                 error_message = arguments[0]
                 logger.info(f"Registration failed with error message: {error_message}")
@@ -368,9 +365,9 @@ class Client:
                         self.chat_ui.display_message(s, m))
 
             elif op_code == "SETTINGS_SAVED":
-                logger.error("Settings saved:", arguments)
-                if hasattr(self, 'chat_ui'):
-                    self.chat_ui.settings = arguments[3]
+                logger.error(f"Settings saved: {arguments}")
+                # if hasattr(self, 'chat_ui'):
+                    # self.chat_ui.settings = arguments[3]
 
     # Socket Connections & Management
     def send_request(self, message):

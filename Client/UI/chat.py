@@ -21,7 +21,7 @@ class ChatUI:
         
         # Configure the window
         self.root.title(f"Chat - {username}")
-        self.root.geometry("600x700")
+        self.root.geometry("600x750")
         
         # Style configuration
         self.style = ttk.Style()
