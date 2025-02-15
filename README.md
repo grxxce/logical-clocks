@@ -13,22 +13,17 @@ DIY-WIRE-PROTOCOL/
 │   │   └── ServerRequest.py
 │   ├── UI/
 │   │   ├── chat.py
-│   │   ├── login.py
 │   │   └── signup.py
-│   ├── communication_manager.py
 │   ├── main.py
-│   └── middleware.py
+│   └── test_client.py
 ├── Server/
 │   ├── Model/
-│   │   └── ClientRequest.py
+│   │   └── SerializationManager.py
 │   ├── auth_handler.py
 │   ├── database.py
 │   ├── main.py
+│   ├── test_server.py
 │   └── service_actions.py
-└── tests/
-    ├── test_chat.py
-    ├── test_server_request.py
-    └── (other test files)
 ```
 
 ### Components
