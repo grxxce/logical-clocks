@@ -79,7 +79,26 @@ class Client:
             register_callback=self._handle_register
         )
 
-    def show_chat_ui(self, username, all_users):
+    def _handle_delete_message(self, delete_request):
+        """Handle message deletion request"""
+        try:
+            # Format: version§DELETE_MESSAGE§sender§recipient§message§timestamp
+            delete_message = (
+                f"{1}§DELETE_MESSAGE§"
+                f"{delete_request['sender']}§"
+                f"{delete_request['recipient']}§"
+                f"{delete_request['message']}§"
+                f"{delete_request['timestamp']}"
+            )
+            
+            print(f"Sending delete message request: {delete_message}")
+            self.send_request(delete_message)
+            
+        except Exception as e:
+            print(f"Error sending delete request: {e}")
+            messagebox.showerror("Error", "Failed to send delete request")
+
+    def show_chat_ui(self, username, settings, all_users):
         """
         Switch the UI to the chat UI.
 
@@ -94,6 +113,7 @@ class Client:
             'send_message': self._handle_chat_message,
             'get_inbox': self._handle_get_inbox,
             'save_settings': self._handle_save_settings,
+            'delete_message': self._handle_delete_message,
             'delete_account': self._handle_delete_account
         }
         
@@ -103,7 +123,8 @@ class Client:
             root=self.root,
             callbacks=callbacks,
             username=username,
-            all_users=all_users 
+            all_users=all_users, 
+            settings=settings
         )
 
     # MARK: Handling Requests to the Server
@@ -178,8 +199,10 @@ class Client:
         Parameters:
                 settings: a dictionary with account setting information
         """
-        OP_CODE = "NOTIFICATION_LIMIT"
-        settings_request = ServerRequest.serialize_to_str(version, OP_CODE, [self.current_username, settings['message_history_limit']], isJSON)
+        
+        OP_CODE = "SAVE_SETTINGS"
+        arguments = [self.current_username, settings]
+        settings_request = ServerRequest.serialize_to_str(version, OP_CODE, arguments, isJSON)
         self.send_request(settings_request)
         logger.info(f"Client sent request to server to update notification limit.")
 
@@ -190,7 +213,8 @@ class Client:
         self.send_request(delete_account_request)
         logger.info(f"Client sent request to have account deleted.")
         # Close the chat window and return to login
-        # self.root.destroy()
+        self.root.destroy()
+
 
     def _handle_delete_message(self, message_uuid, sender, recipient):
         """Handle the deletion of messages on both a sender & recipients' devices.
@@ -267,12 +291,13 @@ class Client:
             # If the user has completed a successful login, handle it first.
             if message["opcode"] == "LOGIN_SUCCESS":
                 username = arguments[1]
+                settings = arguments[2] #TODO: check
                 all_users = arguments[3:]
                 logger.info(f"Sucessfully logged in as: {username}. Available users: {all_users}")
 
                 # self.root.after(0, lambda: self.show_chat_ui(username, all_users))
                 # Create chat UI synchronously
-                self.show_chat_ui(username, all_users)
+                self.show_chat_ui(username, settings, all_users)
                 # Let the UI update
                 self.root.update()
                 break  # Exit after handling login
@@ -334,7 +359,20 @@ class Client:
                     self.root.after(0, lambda s=sender, m=message: 
                         self.chat_ui.display_message(s, m))
 
-    # MARK: Sending Requests & Management
+            elif op_code == "DELETE_RECEIVED_MESSAGE":
+                logger.error("Received delete message request:", arguments)
+                if hasattr(self, 'chat_ui'):
+                    sender = arguments[3]
+                    message = arguments[5]
+                    self.root.after(0, lambda s=sender, m=message: 
+                        self.chat_ui.display_message(s, m))
+
+            elif op_code == "SETTINGS_SAVED":
+                logger.error("Settings saved:", arguments)
+                if hasattr(self, 'chat_ui'):
+                    self.chat_ui.settings = arguments[3]
+
+    # Socket Connections & Management
     def send_request(self, message):
         """
         Handle the sending of requests from the client to the server

@@ -3,7 +3,7 @@ import socket
 import selectors
 import types
 from collections import defaultdict
-from service_actions import register, login, delete_account, delete_message, update_notification_limit
+from service_actions import register, login, delete_account, delete_message, update_notification_limit, get_settings
 from Model.SerializationManager import SerializationManager as SM
 import logging
 
@@ -178,9 +178,16 @@ def handle_client_requests(sock, data):
             case "DELETE_ACCOUNT":
                 delete_account_response = delete_account(*arguments)
                 response = SM.serialize_to_str(VERSION, delete_account_response[0], delete_account_response[1], isJSON)
-            case "NOTIFICATION_LIMIT":
-                update_limit_response = update_notification_limit(*arguments)
-                response = SM.serialize_to_str(VERSION, update_limit_response[0], update_limit_response[1], isJSON)
+            case "DELETE_MESSAGE":
+                response = delete_message(*arguments)
+                response = SM.serialize_to_str(VERSION, response[0], response[1], isJSON)
+            case "GET_SETTINGS":
+                # TODO: check
+                response = get_settings(*arguments)
+                response = SM.serialize_to_str(VERSION, response[0], response[1], isJSON)
+            case "SAVE_SETTINGS":
+                response = save_settings(*arguments)
+                response = SM.serialize_to_str(VERSION, response[0], response[1], isJSON)
             case _:
                 logger.warning("Nothing to do reached in handle function.")
                 response = "Nothing to do."
@@ -196,6 +203,11 @@ def handle_client_requests(sock, data):
     except Exception as e:
         logger.error(f"Error occurred while handling client request with error {e}")
 
+def delete_message(sender, recipient, message, timestamp):
+    print("deleting message")
+    OP_CODE = "DELETE_RECEIVED_MESSAGE"
+    request = ClientRequest.serialize(VERSION, OP_CODE, [sender, recipient, message, timestamp])
+    return request
 
 def send_message(sender, recipient, message):
     """

@@ -83,12 +83,37 @@ def setup(username):
     Returns:
             a list starting with "USER" and all other usernames of available clients
     """
-    # Get all clients' usernames
-    usernames = DatabaseManager.get_contacts()
-    response = ["USERS"]
-    for user in usernames:
-        response.append(user)
-    return response
+
+    try:
+        print("in setup")
+        usernames = DatabaseManager.get_contacts()
+        settings = DatabaseManager.get_settings(username)
+
+        arguments = [str(settings)]
+        for user in usernames:
+            arguments.append(user)
+        
+        print("response AFTER People", response)
+        return arguments
+    except Exception as e:
+        print(f"SETUP FAIL: {str(e)}")
+        return False
+
+def save_settings(username, settings):
+    # Update the user's settings in the database
+    print("calling update settings")
+    DatabaseManager.save_settings(username, settings)
+    OP_CODE = "SETTINGS_SAVED"
+    argument = ["Settings saved"]
+    return OP_CODE, argument
+
+def get_settings(username):
+    # Get the user's settings from the database
+    print("calling get settings")
+    settings = DatabaseManager.get_settings(username)
+    OP_CODE = "GET_SETTINGS_SUCCESS"
+    argument = [str(settings)]
+    return OP_CODE, argument
 
 def delete_message():
     # could be one message or multiple
