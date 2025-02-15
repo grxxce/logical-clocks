@@ -3,7 +3,7 @@ import socket
 import selectors
 import types
 from collections import defaultdict
-from service_actions import register, login, delete_account, delete_message, update_notification_limit, get_settings, save_settings
+from service_actions import register, login, delete_account, get_settings, save_settings
 from Model.SerializationManager import SerializationManager as SM
 import argparse
 import logging
@@ -100,7 +100,6 @@ def accept_connection(sock):
         selector.register(conn, events, data=data)
     except socket.error as e:
         logger.error(f"Failed to accept socket connection with socket error: {e}")
-
 
 def service_connection(key, mask):
     """
@@ -199,15 +198,9 @@ def handle_client_requests(sock, data):
 
             case "SEND_MESSAGE":
                 response = send_message(*arguments)
-            case "DELETE_MESSAGE":
-                delete_message_response = delete_message(*arguments)
-                response = SM.serialize_to_str(VERSION, delete_message_response[0], delete_message_response[1], isJSON)
             case "DELETE_ACCOUNT":
                 delete_account_response = delete_account(*arguments)
                 response = SM.serialize_to_str(VERSION, delete_account_response[0], delete_account_response[1], isJSON)
-            case "DELETE_MESSAGE":
-                response = delete_message(*arguments)
-                response = SM.serialize_to_str(VERSION, response[0], response[1], isJSON)
             case "GET_SETTINGS":
                 # TODO: check
                 response = get_settings(*arguments)
@@ -229,13 +222,6 @@ def handle_client_requests(sock, data):
         logger.info(f"Response sent successfully via {sock}")
     except Exception as e:
         logger.error(f"Error occurred while handling client request with error {e}")
-
-def delete_message(sender, recipient, message, timestamp):
-    print("deleting message")
-    # OP_CODE = "DELETE_RECEIVED_MESSAGE"
-    # request = SM.serialize_to_str(VERSION, OP_CODE, [sender, recipient, message, timestamp], isJSON)
-    # return request
-    pass
 
 def send_message(sender, recipient, message):
     """

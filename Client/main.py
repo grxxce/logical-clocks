@@ -48,7 +48,6 @@ class Client:
         self.socketConnection = None
         self.running = True
 
-        #todo: replace with real thing later
         self.message_history_limit = 50
         
         # Create root window
@@ -76,21 +75,6 @@ class Client:
             register_callback=self._handle_register
         )
 
-    def _handle_delete_message(self, delete_request):
-        """Handle message deletion request"""
-        # try:
-        #     # Format: version§DELETE_MESSAGE§sender§recipient§message§timestamp
-        #     OP_CODE = "DELETE_MESSAGE"
-        #     arguments = [delete_request['sender'], delete_request['recipient'], delete_request['message'], delete_request['timestamp']]
-        #     delete_message = ServerRequest.serialize_to_str(version, OP_CODE, arguments, isJSON)
-        #     self.send_request(delete_message)
-        #     logger.info(f"Client sent request to have message to {recipient} deleted.")
-            
-        # except Exception as e:
-        #     print(f"Error sending delete request: {e}")
-        #     messagebox.showerror("Error", "Failed to send delete request")
-        pass
-
     def show_chat_ui(self, username, settings, all_users):
         """
         Switch the UI to the chat UI.
@@ -106,7 +90,6 @@ class Client:
             'send_message': self._handle_chat_message,
             'get_inbox': self._handle_get_inbox,
             'save_settings': self._handle_save_settings,
-            'delete_message': self._handle_delete_message,
             'delete_account': self._handle_delete_account
         }
         
@@ -134,7 +117,6 @@ class Client:
         self.send_request(chat_message)
         logger.info(f"Client sent request to server to deliver message to {recipient} with message {message}.")
 
-    
     def _handle_get_inbox(self):
         """Handle inbox refresh requests and return unread messages."""
         logger.info("Handling inbox refresh request.")
@@ -208,15 +190,6 @@ class Client:
         # Close the chat window and return to login
         self.root.destroy()
 
-
-    # def _handle_delete_message(self, message_uuid, sender, recipient):
-        """Handle the deletion of messages on both a sender & recipients' devices.
-           Send a message to the server asking to delete one or more messages from both clients."""
-        # op_code = "DELETE_MESSAGE"
-        # delete_message_request = ServerRequest.serialize_to_str(version, op_code, [message_uuid, sender, recipient], isJSON)
-        # self.send_request(delete_message_request)
-        # logger.info(f"Client sent request to have message to {recipient} deleted.")
-
     # MARK: Handling Server Connection & Responses
     def establishServerConnection(self):
         """
@@ -245,7 +218,6 @@ class Client:
                         decoded_data = data.decode('utf-8')
                         self.handle_server_response(decoded_data)
                 except socket.error:
-                    # TODO: check if this is okay because it looks like hundreds of warnings
                     continue
         
         except Exception as e:
@@ -255,7 +227,6 @@ class Client:
             # If the client closes or disconnects, then close the socket connection.
             if self.socketConnection:
                 self.socketConnection.close()
-
 
     def handle_server_response(self, data):
         """
@@ -308,7 +279,6 @@ class Client:
                 logger.info(f"Registration failed with error message: {error_message}")
                 messagebox.showinfo("Registration Failed", f"{error_message}")
 
-
         # Handle responses from the server.
         for message in messages: 
             op_code = message["opcode"]
@@ -323,14 +293,6 @@ class Client:
             elif op_code == "DELETE_ACCOUNT_SUCCESS":
                 messagebox.showinfo("Account Deleted", "Your account has been deleted successfully.")
                 self.show_login_ui()
-
-            elif op_code == "DELETE_MESSAGE":
-                # TODO: complete
-                # Here we need to determine which message in the UI to delete.
-                # message_uuid = parts[3]
-                # sender = parts[4]
-                # recipient = parts[5]
-                print("to be implemented")
 
             elif op_code == "NEW_MESSAGE":
                     logger.info(f"Received new message: {message}")
@@ -352,7 +314,7 @@ class Client:
                         self.chat_ui.display_message(s, m))
 
             elif op_code == "DELETE_RECEIVED_MESSAGE":
-                logger.error("Received delete message request:", arguments)
+                logger.info("Received delete message request:", arguments)
                 if hasattr(self, 'chat_ui'):
                     sender = arguments[3]
                     message = arguments[5]
@@ -360,9 +322,7 @@ class Client:
                         self.chat_ui.display_message(s, m))
 
             elif op_code == "SETTINGS_SAVED":
-                logger.error(f"Settings saved: {arguments}")
-                # if hasattr(self, 'chat_ui'):
-                    # self.chat_ui.settings = arguments[3]
+                logger.info(f"Settings saved: {arguments}")
 
     # Socket Connections & Management
     def send_request(self, message):

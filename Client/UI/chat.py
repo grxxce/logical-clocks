@@ -17,7 +17,6 @@ class ChatUI:
         self.get_inbox_callback = callbacks.get('get_inbox')
         self.save_settings_callback = callbacks.get('save_settings')
         self.delete_account_callback = callbacks.get('delete_account')
-        self.delete_message_callback = callbacks.get('delete_message')
         
         # Configure the window
         self.root.title(f"Chat - {username}")
@@ -61,8 +60,6 @@ class ChatUI:
         
         # Right Column (Chat Area)
         self.create_chat_panel()
-
-        
         
     def create_search_panel(self):
         """Create the search panel at the top of left column"""
@@ -111,6 +108,7 @@ class ChatUI:
             text="Refresh Inbox",
             command=self._refresh_inbox
         ).pack(fill=tk.X)
+    
     def create_sent_panel(self):
         """Create the sent messages panel below inbox panel"""
         self.sent_frame = ttk.LabelFrame(self.left_column, text="Delete Sent Message", padding="5")
@@ -181,18 +179,7 @@ class ChatUI:
             if not messagebox.askyesno("Delete Message", 
                                      f"Delete this message sent to {recipient}?"):
                 return
-            
-            # Send delete request to server
-            if self.delete_message_callback:
-                delete_request = {
-                    'sender': self.username,
-                    'recipient': recipient,
-                    'message': message,
-                    'timestamp': timestamp
-                }
-                print(f"Sending delete request: {delete_request}")
-                self.delete_message_callback(delete_request)
-            
+        
             # Remove from local chat histories
             self._remove_message_from_history(recipient, message, timestamp)
             
@@ -339,8 +326,7 @@ class ChatUI:
         if not hasattr(self, 'selected_recipient') or not self.selected_recipient:
             messagebox.showwarning("Warning", "Please select a user to chat with first.")
             return
-        
-            
+
         message = self.message_input.get().strip()
         if message:
             # Send message through callback
@@ -368,6 +354,7 @@ class ChatUI:
             # Clear input
             self.message_input.delete(0, tk.END)
             self._refresh_sent()
+
     def _format_sent_message(self, message, timestamp):
         """Format and display a sent message"""
         self.chat_display.insert(tk.END, f"{timestamp} You: ", 'sent')
@@ -378,7 +365,6 @@ class ChatUI:
         self.chat_display.insert(tk.END, f"{timestamp} {sender}: ", 'received')
         self.chat_display.insert(tk.END, f"{message}\n", 'received')
 
-    
     def _on_search_change(self, *args):
         """Handle search input changes"""
         search_text = self.search_var.get().strip().lower()  # Convert to lowercase for case-insensitive search
@@ -439,15 +425,13 @@ class ChatUI:
         
         print(f"Finished displaying {len(self.chat_histories[self.selected_recipient])} messages")
 
-    
     def _on_inbox_select(self, event):
         """Handle inbox conversation selection"""
         selection = self.inbox_list.curselection()
         print("selection:", selection)
         if not selection:
             return
-
-            
+  
         # Get selected message data
         selected_index = selection[0]
         selected_message = self.new_messages[selected_index]

@@ -83,54 +83,34 @@ def setup(username):
     Returns:
             a list starting with "USER" and all other usernames of available clients
     """
-
     try:
-        print("in setup")
         usernames = DatabaseManager.get_contacts()
         settings = DatabaseManager.get_settings(username)
-
         arguments = [str(settings)]
         for user in usernames:
             arguments.append(user)
-        
-        print("response AFTER People", arguments)
         return arguments
     except Exception as e:
-        print(f"SETUP FAIL: {str(e)}")
+        logger.error(f"Setup failed with error: {str(e)}")
         return False
 
 def save_settings(username, settings):
-    # Update the user's settings in the database
-    print("calling update settings")
+    """Update the user's settings in the database"""
     DatabaseManager.save_settings(username, settings)
     OP_CODE = "SETTINGS_SAVED"
     argument = ["Settings saved"]
     return OP_CODE, argument
 
 def get_settings(username):
-    # Get the user's settings from the database
-    print("calling get settings")
+    """Get the user's settings from the database"""
     settings = DatabaseManager.get_settings(username)
     OP_CODE = "GET_SETTINGS_SUCCESS"
     argument = [str(settings)]
     return OP_CODE, argument
 
-def delete_message():
-    # could be one message or multiple
-    print("to be implemented")
-    response = "DELETE_MESSAGE_SUCCESS§Message deleted"
-
 def delete_account(username):
-    # # remove from db & delete messages?
-    # DatabaseManager.delete_account(username)
-    # print("deleted account")
-    # delete_response = "DELETE_ACCOUNT_SUCCESS§Account deleted"
-    # return f"1§{len(delete_response)}§{delete_response}"
+    """Delete the user's account"""
     DatabaseManager.delete_account(username)
     op_code = "DELETE_ACCOUNT_SUCCESS"
     arguments = ["Account deleted"]
     return op_code, arguments
-
-def update_notification_limit():
-    # set the limit on the # of unread messages to be received at a given time
-    print("to be implemented")
