@@ -40,6 +40,7 @@ DIY-WIRE-PROTOCOL/
   - **ServerRequest.py**: Provides functions to serialize and deserialize requests/responses using either the custom or JSON protocol.
 - **Tests**
   - **test_client.py**: Contains test cases for client-side functionality including protocol parsing and UI interactions.
+  - **test_server.py**: Contains test cases for server-side functionality including protocol parsing and networking connections.
 
 #### Server Side
 - **Core Modules** (`Server/`)
