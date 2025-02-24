@@ -16,9 +16,12 @@ def serve():
     print("Server started on port 5001")
     server.wait_for_termination()
 
-
-
 class MessageServer(service_pb2_grpc.MessageServerServicer):
+
+    def __init__(self):
+        self.active_clients = {}
+        self.pending_messages = {}
+    
     def Register(self, request, context):
         try:
             
@@ -65,23 +68,35 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             for user in users:
                 print("user: ", user)
                 yield service_pb2.GetUsersResponse(
-                    status=service_pb2.GetUsersResponse.Status.SUCCESS,
+                    status=service_pb2.GetUsersResponse.GetUsersStatus.SUCCESS,
                     username=user
                 )
         except:
             yield service_pb2.GetUsersResponse(
-                status=service_pb2.GetUsersResponse.Status.FAILURE,
+                status=service_pb2.GetUsersResponse.GetUsersStatus.FAILURE,
                 username=""
             )
 
     def SendMessage(self, request, context):
-        pass
+        try:
+            if request.recipient in self.active_clients:
+                self.active_clients[request.recipient].send
+        except:
+            print("Error: ", e)
+            pass
+
 
     def GetPendingMessage(self, request, context):
         pass
     
     def MonitorMessages(self, request, context):
-        pass
+        try:
+            client_stream = context.peer()
+            self.active_clients[request.username] = client_stream
+            print("active clients: ", self.active_clients)
+        except:
+            print("Error: ", e)
+            pass
 
     def DeleteAccount(self, request, context):
         pass
