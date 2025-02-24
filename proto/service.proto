@@ -1,5 +1,4 @@
 syntax = "proto3";
-import "google/protobuf/empty.proto";
 
 
 // NOTE: We can change this name!!
@@ -16,7 +15,7 @@ service MessageServer {
     // Stream because it is an array of messages
     rpc GetPendingMessage (PendingMessageRequest) returns (stream PendingMessageResponse);
     // Stream because we are subscribing for updates
-    rpc MonitorMessages (google.protobuf.Empty) returns (stream Message);
+    rpc MonitorMessages (MonitorMessagesRequest) returns (stream Message);
     rpc DeleteAccount (DeleteAccountRequest) returns (DeleteAccountResponse);
     rpc SaveSettings (SaveSettingsRequest) returns (SaveSettingsResponse);
     rpc GetSettings (GetSettingsRequest) returns (GetSettingsResponse);
@@ -78,6 +77,10 @@ message Message {
     string timestamp = 4;
 }
 
+message MonitorMessagesRequest {
+    string username = 1;
+}
+
 message MessageResponse {
     enum MessageStatus {
         SUCCESS = 0;
@@ -88,6 +91,7 @@ message MessageResponse {
 
 message PendingMessageRequest {
     string username = 1;
+    int32 inbox_limit = 2;
 }
 
 message PendingMessageResponse {

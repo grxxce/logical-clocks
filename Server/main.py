@@ -7,6 +7,7 @@ from proto import service_pb2
 from proto import service_pb2_grpc
 from auth_handler import AuthHandler
 from database import DatabaseManager
+from collections import defaultdict
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -20,7 +21,8 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
 
     def __init__(self):
         self.active_clients = {}
-        self.pending_messages = {}
+        self.pending_messages = defaultdict(list)
+        self.message_queue = defaultdict(list)
     
     def Register(self, request, context):
         try:
@@ -59,7 +61,7 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
         except:
             status_message = service_pb2.LoginResponse.LoginStatus.FAILURE
             return service_pb2.LoginResponse(
-                status=status_meassage, 
+                status=status_message, 
                 message="User login failed")
     
     def GetUsers(self, request, context):
@@ -79,34 +81,106 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
 
     def SendMessage(self, request, context):
         try:
-            if request.recipient in self.active_clients:
-                self.active_clients[request.recipient].send
-        except:
-            print("Error: ", e)
+            print("request.recipient: ", request.recipient)
+            print("self.active_clients.keys(): ", self.active_clients.keys())
+            message_request = service_pb2.Message(
+                    sender=request.sender,
+                    recipient=request.recipient,
+                    message=request.message,
+                    timestamp=request.timestamp
+                )
+            if request.recipient in self.active_clients.keys():
+                print("found recipient")
+                self.message_queue[request.recipient].append(message_request)
+                print("sent to found recipient")
+                return service_pb2.MessageResponse(
+                    status=service_pb2.MessageResponse.MessageStatus.SUCCESS
+                )
+            else:
+                print("no recipient found")
+                self.pending_messages[request.recipient].append(message_request)
+                print("added to queue")
+                return service_pb2.MessageResponse(
+                    status=service_pb2.MessageResponse.MessageStatus.SUCCESS
+                )
+        except Exception as e:
+            print("Error sending message: ", e)
             pass
 
 
     def GetPendingMessage(self, request, context):
-        pass
+        try:
+            counter = 0
+            while self.pending_messages[request.username] and counter < request.inbox_limit:
+                counter += 1
+                pending_message = self.pending_messages[request.username].pop(0)
+                yield service_pb2.PendingMessageResponse(
+                    status=service_pb2.PendingMessageResponse.PendingMessageStatus.SUCCESS,
+                    message=pending_message
+                )
+        except:
+            yield service_pb2.PendingMessageResponse(
+                status=service_pb2.PendingMessageResponse.PendingMessageStatus.FAILURE,
+                message="failed to get pending messages"
+            )
     
     def MonitorMessages(self, request, context):
         try:
-            client_stream = context.peer()
+            # client_stream = context.peer()
+            client_stream = context
             self.active_clients[request.username] = client_stream
             print("active clients: ", self.active_clients)
-        except:
+            while True:
+                if self.message_queue[request.username]:
+                    message = self.message_queue[request.username].pop(0)
+                    yield message
+        except Exception as e:
             print("Error: ", e)
-            pass
 
     def DeleteAccount(self, request, context):
-        pass
+        try:
+            status = DatabaseManager.delete_account(request.username)
+            if status:
+                return service_pb2.DeleteAccountResponse(
+                    status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.SUCCESS
+                )
+            else:
+                return service_pb2.DeleteAccountResponse(
+                    status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.FAILURE
+                )
+        except:
+            return service_pb2.DeleteAccountResponse(
+                status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.FAILURE
+            )
     
     def SaveSettings(self, request, context):
-        pass
-
-    def GetSettings(self, request, context):
-        pass
+        try:
+            status = DatabaseManager.save_settings(request.username, request.setting)
+            if status:
+                return service_pb2.SaveSettingsResponse(
+                    status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.SUCCESS
+                )
+            else:
+                return service_pb2.SaveSettingsResponse(
+                    status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.FAILURE
+                )
+        except:
+            return service_pb2.SaveSettingsResponse(
+                status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.FAILURE
+            )
     
+    def GetSettings(self, request, context):
+        try: 
+            settings = DatabaseManager.get_settings(request.username)
+            return service_pb2.GetSettingsResponse(
+                status=service_pb2.GetSettingsResponse.GetSettingsStatus.SUCCESS,
+                setting=settings
+            )
+        except:
+            return service_pb2.GetSettingsResponse(
+                status=service_pb2.GetSettingsResponse.GetSettingsStatus.FAILURE,
+                setting=0
+            )
     
 if __name__ == "__main__":
     serve()

@@ -2,7 +2,6 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from proto import service_pb2 as service__pb2
 
 
@@ -43,7 +42,7 @@ class MessageServerStub(object):
                 )
         self.MonitorMessages = channel.unary_stream(
                 '/message_server.MessageServer/MonitorMessages',
-                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                request_serializer=service__pb2.MonitorMessagesRequest.SerializeToString,
                 response_deserializer=service__pb2.Message.FromString,
                 )
         self.DeleteAccount = channel.unary_unary(
@@ -154,7 +153,7 @@ def add_MessageServerServicer_to_server(servicer, server):
             ),
             'MonitorMessages': grpc.unary_stream_rpc_method_handler(
                     servicer.MonitorMessages,
-                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    request_deserializer=service__pb2.MonitorMessagesRequest.FromString,
                     response_serializer=service__pb2.Message.SerializeToString,
             ),
             'DeleteAccount': grpc.unary_unary_rpc_method_handler(
@@ -280,7 +279,7 @@ class MessageServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_stream(request, target, '/message_server.MessageServer/MonitorMessages',
-            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            service__pb2.MonitorMessagesRequest.SerializeToString,
             service__pb2.Message.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
