@@ -15,16 +15,12 @@ from tkinter import ttk, messagebox
 
 # Configure logging set-up. We want to log times & types of logs, as well as
 # function names & the subsequent message.
-
 import logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
 )
-
-# Create a logger
 logger = logging.getLogger(__name__)
-
 
 class Client:
     def __init__(self, host, port):
@@ -35,17 +31,12 @@ class Client:
         self.root = tk.Tk()
         self.show_login_ui()
 
-
     def run(self):
         try: 
             self.root.mainloop()
         finally:
             #todo: remove user from active clients
             pass
-        # REGISTER
-        # response = stub.Register(service_pb2.RegisterRequest(username="testuser2", password="testpassword", email="test@test.com"))
-
-        
         # GET USERS
         # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
 
@@ -85,10 +76,8 @@ class Client:
 
     def show_login_ui(self):
         """Show the login UI."""
-        # Clear the root window
         for widget in self.root.winfo_children():
             widget.destroy()
-            
         self.ui = LoginUI(
             root=self.root,
             login_callback=self._handle_login,
@@ -97,11 +86,7 @@ class Client:
 
     def show_chat_ui(self, username, settings, all_users, pending_messages):
         """
-        Switch the UI to the chat UI.
-
-        Parameters:
-                username: a string of the username of the current user
-                all_users: a list of users that the current user can message
+        Create the initial chat UI
         """
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -113,16 +98,13 @@ class Client:
             'delete_account': self._handle_delete_account
         }
         
-        self.current_username = username
-        self.all_users = all_users
-        self.pending_messages = pending_messages
-        
         self.chat_ui = ChatUI(
             root=self.root,
             callbacks=callbacks,
             username=username,
             all_users=all_users, 
-            settings=settings
+            pending_messages=pending_messages,
+            settings=settings,
         )
 
 
@@ -155,7 +137,7 @@ class Client:
         _ = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=username))
 
         user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
-        all_users = [user for user in user_responses]
+        all_users = [user.username for user in user_responses]
 
         settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=username))
         settings = settings_response.setting

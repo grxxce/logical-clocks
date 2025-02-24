@@ -2,14 +2,14 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
 class ChatUI:
-    def __init__(self, root, callbacks, username, all_users, settings=30):
+    def __init__(self, root, callbacks, username, all_users, pending_messages, settings=30):
         self.root = root
         self.username = username
         self.all_users = all_users
         self.settings = tk.IntVar(value=settings)
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
-        self.new_messages = {}
+        self.new_messages = pending_messages
         self.selected_recipient = None
         
         # Store callbacks
@@ -473,34 +473,37 @@ class ChatUI:
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
+        self.new_messages = self.get_inbox_callback()
         print("new MESSAGES TO POP:", self.new_messages)
         
-        self.inbox_list.delete(0, tk.END)
-        
-        # Get all messages sorted by timestamp
-        all_messages = []
-        for sender, messages in self.new_messages.items():
-            for msg in messages:
-                all_messages.append({
-                    'sender': sender,
-                    'message': msg['message'],
-                    'timestamp': msg['timestamp'],
-                    'preview': f"{sender}: {msg['message'][:30]}..."  # Message preview
-                })
-        
-        # Sort by timestamp (newest first)
-        all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
-        
-        # Take most recent 50 messages
-        print("taking most recent", self.settings.get(), "messages")
-        recent_messages = all_messages[:int(self.settings.get())]
-        
-        # Update inbox display
-        for msg in recent_messages:
-            self.inbox_list.insert(tk.END, msg['preview'])
-            self.inbox_list.message_data = recent_messages
+        if self.new_messages :
+            self.inbox_list.delete(0, tk.END)
+            all_messages = []
+            for sender, messages in self.new_messages.items():
+                for msg in messages:
+                    all_messages.append({
+                        'sender': sender,
+                        'message': msg['message'],
+                        'timestamp': msg['timestamp'],
+                        'preview': f"{sender}: {msg['message'][:30]}..."  # Message preview
+                    })
             
-        print(f"Updated inbox with {len(recent_messages)} messages")
+            # Sort by timestamp (newest first)
+            all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
+            
+            # Take most recent 50 messages
+            print("taking most recent", self.settings.get(), "messages")
+            recent_messages = all_messages[:int(self.settings.get())]
+            
+            # Update inbox display
+            for msg in recent_messages:
+                self.inbox_list.insert(tk.END, msg['preview'])
+                self.inbox_list.message_data = recent_messages
+                
+            print(f"Updated inbox with {len(recent_messages)} messages")
+
+        else:
+            print("no messages")
     
     def update_search_results(self, users):
         """Update the search results listbox"""
