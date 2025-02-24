@@ -1,5 +1,4 @@
 syntax = "proto3";
-
 import "google/protobuf/empty.proto";
 
 
@@ -34,7 +33,7 @@ message RegisterRequest {
 message RegisterResponse {
     enum RegisterStatus {
         SUCCESS = 0;
-        FAILED = 1;
+        FAILURE = 1;
     }
     RegisterStatus status = 1;
     string message = 2;
