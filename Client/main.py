@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from proto import service_pb2
 from proto import service_pb2_grpc
 from google.protobuf import empty_pb2
+from datetime import datetime
 
 def run():
     channel = grpc.insecure_channel('localhost:5001')
@@ -17,21 +18,20 @@ def run():
     # print(response)
     # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
     # stub.SendMessage(service_pb2.Message(sender="testuser2", recipient="testuser1", message="Hello, world!"))
+    responses = stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username="testuser"))
+    receivedMessage = stub.SendMessage(service_pb2.Message(
+        sender="testuser",
+        recipient="testuser",
+        message="Hello, world!",
+        timestamp="time"
+    ))
 
-    responses = stub.MonitorMessages()
-
-
-    # try:
-    #     responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
-    #     print("responses: ", responses)
-    #     for response in responses:
-    #         # Access specific fields from the GetUsersResponse message
-    #         if response.status == service_pb2.GetUsersResponse.GetUsersStatus.SUCCESS:
-    #             print(f"- {response.username}")
-    #         else:
-    #             print(f"Error receiving user: {response.username}")
-    # except Exception as e:
-    #     print("error: ", e)
+    try:
+        for response in responses:
+            print("response: ", response)
+            # Access specific fields from the GetUsersResponse message
+    except Exception as e:
+        print("error: ", e)
 
 if __name__ == "__main__":
     run()
