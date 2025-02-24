@@ -37,11 +37,6 @@ class Client:
         finally:
             #todo: remove user from active clients
             pass
-        # GET USERS
-        # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
-
-        # SEND MESSAGE
-        # stub.SendMessage(service_pb2.Message(sender="testuser2", recipient="testuser1", message="Hello, world!"))
 
         # MONITOR
         # responses = stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username="testuser"))
@@ -90,7 +85,9 @@ class Client:
         """
         for widget in self.root.winfo_children():
             widget.destroy()
-            
+        
+        self.current_user = username
+
         callbacks = {
             'send_message': self._handle_chat_message,
             'get_inbox': self._handle_get_inbox,
@@ -106,7 +103,6 @@ class Client:
             pending_messages=pending_messages,
             settings=settings,
         )
-
 
     def _handle_login(self, username, password):
         response = self.stub.Login(service_pb2.LoginRequest(username=username, password=password))
@@ -148,16 +144,20 @@ class Client:
         return settings, all_users, pending_messages
 
     def _handle_chat_message(self, recipient, message):
-        pass
+        response = self.stub.SendMessage(service_pb2.Message(sender=self.current_user, recipient=recipient, message=message))
     
     def _handle_get_inbox(self):
-        pass
+        settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
+        settings = settings_response.setting
+
+        responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user, inbox_limit=settings))
+        return [response.message for response in responses]
     
     def _handle_save_settings(self, settings):
-        pass
+        response = self.stub.SaveSettings(service_pb2.SaveSettingsRequest(username=self.current_user, setting=settings))
 
     def _handle_delete_account(self):
-        pass
+        response = self.stub.DeleteAccount(service_pb2.DeleteAccountRequest(username=self.current_user))
 
 
 if __name__ == "__main__":
