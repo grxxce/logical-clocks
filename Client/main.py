@@ -8,51 +8,176 @@ from proto import service_pb2_grpc
 from google.protobuf import empty_pb2
 from datetime import datetime
 
-def run():
-    channel = grpc.insecure_channel('localhost:5001')
-    stub = service_pb2_grpc.MessageServerStub(channel)
+from UI.signup import LoginUI
+from UI.chat import ChatUI
+import tkinter as tk
+from tkinter import ttk, messagebox
 
-    # REGISTER
-    # response = stub.Register(service_pb2.RegisterRequest(username="testuser2", password="testpassword", email="test@test.com"))
+# Configure logging set-up. We want to log times & types of logs, as well as
+# function names & the subsequent message.
 
-    # LOGIN
-    # response = stub.Login(service_pb2.LoginRequest(username="testuser2", password="testpassword"))
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+)
+
+# Create a logger
+logger = logging.getLogger(__name__)
+
+
+class Client:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.channel = grpc.insecure_channel(f'{host}:{port}')
+        self.stub = service_pb2_grpc.MessageServerStub(self.channel)
+        self.root = tk.Tk()
+        self.show_login_ui()
+
+
+    def run(self):
+        try: 
+            self.root.mainloop()
+        finally:
+            #todo: remove user from active clients
+            pass
+        # REGISTER
+        # response = stub.Register(service_pb2.RegisterRequest(username="testuser2", password="testpassword", email="test@test.com"))
+
+        
+        # GET USERS
+        # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
+
+        # SEND MESSAGE
+        # stub.SendMessage(service_pb2.Message(sender="testuser2", recipient="testuser1", message="Hello, world!"))
+
+        # MONITOR
+        # responses = stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username="testuser"))
+        # _ = stub.SendMessage(service_pb2.Message(
+        #     sender="testuser",
+        #     recipient="testuser2",
+        #     message="Hello, world 1! a real new mesage",
+        #     timestamp="time"
+        # ))
+
+        # GET PENDING MESSAGE
+        # responses = stub.GetPendingMessage(service_pb2.PendingMessageRequest(username="testuser2", inbox_limit=1))
+
+        # DELETE ACCOUNT
+        # response = stub.DeleteAccount(service_pb2.DeleteAccountRequest(username="testuser2"))
+        # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
+
+        # SAVE SETTINGS
+        # _ = stub.SaveSettings(service_pb2.SaveSettingsRequest(username="testuser", setting=100))
+        # GET SETTINGS
+        # response = stub.GetSettings(service_pb2.GetSettingsRequest(username="testuser"))
+        # print("response: ", response)
+
+        # ITERATE THROUGH STREAM
+        # try:
+        #     for response in responses:
+        #         print("response: ", response)
+        #         # Access specific fields from the GetUsersResponse message
+        # except Exception as e:
+        #     print("error: ", e)
+        
+
+    def show_login_ui(self):
+        """Show the login UI."""
+        # Clear the root window
+        for widget in self.root.winfo_children():
+            widget.destroy()
+            
+        self.ui = LoginUI(
+            root=self.root,
+            login_callback=self._handle_login,
+            register_callback=self._handle_register
+        )
+
+    def show_chat_ui(self, username, settings, all_users, pending_messages):
+        """
+        Switch the UI to the chat UI.
+
+        Parameters:
+                username: a string of the username of the current user
+                all_users: a list of users that the current user can message
+        """
+        for widget in self.root.winfo_children():
+            widget.destroy()
+            
+        callbacks = {
+            'send_message': self._handle_chat_message,
+            'get_inbox': self._handle_get_inbox,
+            'save_settings': self._handle_save_settings,
+            'delete_account': self._handle_delete_account
+        }
+        
+        self.current_username = username
+        self.all_users = all_users
+        self.pending_messages = pending_messages
+        
+        self.chat_ui = ChatUI(
+            root=self.root,
+            callbacks=callbacks,
+            username=username,
+            all_users=all_users, 
+            settings=settings
+        )
+
+
+    def _handle_login(self, username, password):
+        response = self.stub.Login(service_pb2.LoginRequest(username=username, password=password))
+        logger.info(f"Client {username} sent login request to server.")
+        if response.status == service_pb2.LoginResponse.LoginStatus.SUCCESS:
+            settings, all_users, pending_messages = self._handle_setup(username)
+            self.show_chat_ui(username, settings, all_users, pending_messages)
+        else:
+            messagebox.showerror("Login Failed", response.message)
     
-    # GET USERS
-    # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
+    def _handle_register(self, username, password, email):
+        response = self.stub.Register(service_pb2.RegisterRequest(username=username, password=password, email=email))
+        logger.info(f"Client {username} sent register request to server.")
+        if response.status == service_pb2.RegisterResponse.RegisterStatus.SUCCESS:
+            settings, all_users, pending_messages = self._handle_setup(username)
+            self.show_chat_ui(username, settings, all_users, pending_messages)
+        else:
+            messagebox.showerror("Register Failed", response.message)
 
-    # SEND MESSAGE
-    # stub.SendMessage(service_pb2.Message(sender="testuser2", recipient="testuser1", message="Hello, world!"))
+    def _handle_setup(self, username):
+        '''
+        After successful registration or login, handle:
+        (1) Allow user to monitor messages
+        (2) Fetch and return list of online users
+        (3) Fetch and return user's settings
+        (4) Fetch and return list of pending messages
+        '''
+        _ = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=username))
 
-    # MONITOR
-    # responses = stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username="testuser"))
-    # _ = stub.SendMessage(service_pb2.Message(
-    #     sender="testuser",
-    #     recipient="testuser2",
-    #     message="Hello, world 1! a real new mesage",
-    #     timestamp="time"
-    # ))
+        user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
+        all_users = [user for user in user_responses]
 
-    # GET PENDING MESSAGE
-    # responses = stub.GetPendingMessage(service_pb2.PendingMessageRequest(username="testuser2", inbox_limit=1))
+        settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=username))
+        settings = settings_response.setting
 
-    # DELETE ACCOUNT
-    # response = stub.DeleteAccount(service_pb2.DeleteAccountRequest(username="testuser2"))
-    # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
+        pending_responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=username, inbox_limit=settings))
+        pending_messages = [pending_message for pending_message in pending_responses]
+                
+        return settings, all_users, pending_messages
 
-    # SAVE SETTINGS
-    _ = stub.SaveSettings(service_pb2.SaveSettingsRequest(username="testuser", setting=100))
-    # GET SETTINGS
-    response = stub.GetSettings(service_pb2.GetSettingsRequest(username="testuser"))
-    print("response: ", response)
+    def _handle_chat_message(self, recipient, message):
+        pass
+    
+    def _handle_get_inbox(self):
+        pass
+    
+    def _handle_save_settings(self, settings):
+        pass
 
-    # ITERATE THROUGH STREAM
-    # try:
-    #     for response in responses:
-    #         print("response: ", response)
-    #         # Access specific fields from the GetUsersResponse message
-    # except Exception as e:
-    #     print("error: ", e)
+    def _handle_delete_account(self):
+        pass
+
 
 if __name__ == "__main__":
-    run()
+    client = Client(host="localhost", port=5001)
+    client.run()
