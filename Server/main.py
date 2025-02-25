@@ -80,8 +80,9 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             )
 
     def SendMessage(self, request, context):
+        print("in SendMessage")
         try:
-            print("request.recipient: ", request.recipient)
+            print("GET ACTIVE CLIENTS")
             print("self.active_clients.keys(): ", self.active_clients.keys())
             message_request = service_pb2.Message(
                     sender=request.sender,
@@ -111,24 +112,25 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
     def GetPendingMessage(self, request, context):
         try:
             counter = 0
+            print("GET PENDING MESSAGES: ", self.pending_messages[request.username])
             while self.pending_messages[request.username] and counter < request.inbox_limit:
                 counter += 1
                 pending_message = self.pending_messages[request.username].pop(0)
                 yield service_pb2.PendingMessageResponse(
                     status=service_pb2.PendingMessageResponse.PendingMessageStatus.SUCCESS,
-                    message=pending_message
+                    message=pending_message,
                 )
         except:
             yield service_pb2.PendingMessageResponse(
                 status=service_pb2.PendingMessageResponse.PendingMessageStatus.FAILURE,
-                message="failed to get pending messages"
+                message="failed to get pending messages",
             )
     
     def MonitorMessages(self, request, context):
         try:
             client_stream = context
             self.active_clients[request.username] = client_stream
-            print("active clients: ", self.active_clients)
+            print("GET ACTIVE CLIENTS: ", self.active_clients)
             while True:
                 check_status = context.peer()
                 if check_status:
@@ -140,6 +142,9 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
                     self.active_clients.pop(request.username)
         except Exception as e:
             print("Error: ", e)
+        finally:
+            print("client disconnected")
+            del self.active_clients[request.username]
 
     def DeleteAccount(self, request, context):
         try:

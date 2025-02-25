@@ -75,7 +75,7 @@ class Client:
     def show_login_ui(self):
         """Show the login UI."""
         for widget in self.root.winfo_children():
-            widget.destroy()
+            widget.destroy() 
         self.ui = LoginUI(
             root=self.root,
             login_callback=self._handle_login,
@@ -92,7 +92,7 @@ class Client:
         self.current_user = username
 
         callbacks = {
-            'send_message': self._handle_chat_message,
+            'send_message': self._handle_send_message,
             'get_inbox': self._handle_get_inbox,
             'save_settings': self._handle_save_settings,
             'delete_account': self._handle_delete_account
@@ -145,11 +145,29 @@ class Client:
 
         pending_responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=username, inbox_limit=settings))
         pending_messages = [pending_message for pending_message in pending_responses]
+        # pending_messages = ""
                 
         return settings, all_users, pending_messages
 
-    def _handle_chat_message(self, recipient, message):
-        response = self.stub.SendMessage(service_pb2.Message(sender=self.current_user, recipient=recipient, message=message))
+    def _handle_send_message(self, recipient, message):
+        try: 
+            print("attempting to send messages")
+
+            message_request = service_pb2.Message(
+                sender=self.current_user,
+                recipient=recipient,
+                message=message,
+                timestamp=str(datetime.now())
+            )
+            response = self.stub.SendMessage(message_request)
+
+            if response.status == service_pb2.MessageResponse.MessageStatus.SUCCESS:
+                print("message sent successfully")
+            else:
+                print("message not sent")
+
+        except Exception as e:
+            print("error: ", e)
     
     def _monitor_messages(self):
         message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
@@ -161,17 +179,36 @@ class Client:
                 print("Error in monitor message:", e)
 
     def _handle_get_inbox(self):
+        print("getting inbox")
         settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
         settings = settings_response.setting
-
+        
+        print("getting pending messages")
         responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user, inbox_limit=settings))
-        return [response.message for response in responses]
+
+        pending_messages = {}
+        for response in responses:
+            if response.message.sender not in pending_messages:
+                pending_messages[response.message.sender] = []
+            pending_messages[response.message.sender].append(
+                {
+                    'sender': response.message.sender,
+                    'message': response.message.message,
+                    'timestamp': response.message.timestamp
+                }
+            )
+        print("these are the pending messages:", pending_messages)
+        return pending_messages
     
     def _handle_save_settings(self, settings):
         response = self.stub.SaveSettings(service_pb2.SaveSettingsRequest(username=self.current_user, setting=settings))
 
     def _handle_delete_account(self):
         response = self.stub.DeleteAccount(service_pb2.DeleteAccountRequest(username=self.current_user))
+        if response.status == service_pb2.DeleteAccountResponse.DeleteAccountStatus.SUCCESS:
+            self.root.destroy()
+        else:
+            messagebox.showerror("Delete Account Failed", response.message)
 
 
 if __name__ == "__main__":

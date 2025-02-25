@@ -477,37 +477,17 @@ class ChatUI:
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
-        self.new_messages = self.get_inbox_callback()
-        print("new MESSAGES TO POP:", self.new_messages)
-        
-        if self.new_messages :
-            self.inbox_list.delete(0, tk.END)
-            all_messages = []
-            for sender, messages in self.new_messages.items():
-                for msg in messages:
-                    all_messages.append({
-                        'sender': sender,
-                        'message': msg['message'],
-                        'timestamp': msg['timestamp'],
-                        'preview': f"{sender}: {msg['message'][:30]}..."  # Message preview
-                    })
+        print("refreshing inbox with new message:", self.new_messages)
+        self.inbox_list.delete(0, tk.END)
+        if self.new_messages:
+            for msg in self.new_messages:
+                self.inbox_list.insert(tk.END, msg.message.message)
+                self.inbox_list.message_data = self.new_messages
             
-            # Sort by timestamp (newest first)
-            all_messages.sort(key=lambda x: x['timestamp'], reverse=True)
-            
-            # Take most recent 50 messages
-            print("taking most recent", self.settings.get(), "messages")
-            recent_messages = all_messages[:int(self.settings.get())]
-            
-            # Update inbox display
-            for msg in recent_messages:
-                self.inbox_list.insert(tk.END, msg['preview'])
-                self.inbox_list.message_data = recent_messages
-                
-            print(f"Updated inbox with {len(recent_messages)} messages")
-
         else:
             print("no messages")
+
+        self.new_messages = self.get_inbox_callback()
     
     def update_search_results(self, users):
         """Update the search results listbox"""
