@@ -292,8 +292,7 @@ class ChatUI:
             self.chat_histories[from_user] = []
         
         if from_user not in self.new_messages:
-            print(type(from_user), from_user)
-            print(type(self.new_messages))
+            self.new_messages = defaultdict(list)
             self.new_messages[from_user] = []
 
         self.chat_histories[from_user].append({

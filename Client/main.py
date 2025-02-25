@@ -12,8 +12,6 @@ from UI.signup import LoginUI
 from UI.chat import ChatUI
 import tkinter as tk
 from tkinter import ttk, messagebox
-
-import queue
 import threading
 
 # Configure logging set-up. We want to log times & types of logs, as well as
@@ -34,7 +32,6 @@ class Client:
         self.root = tk.Tk()
         self.show_login_ui()
 
-        self.message_queue = queue.Queue()
         self.messageObservation = threading.Thread(target=self._monitor_messages, daemon=True)
 
     def run(self):
@@ -110,7 +107,6 @@ class Client:
             settings=settings,
         )
 
-        self.update_ui()
         self.messageObservation.start()
 
     def _handle_login(self, username, password):
@@ -157,30 +153,12 @@ class Client:
     
     def _monitor_messages(self):
         message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
-        print('hi')
-        print(message_iterator)
-        try:
-            print(message_iterator)
-            while True:
+        while True:
+            try:
                 for message in message_iterator:
-                    print(message)
-                    self.message_queue.put(message)
-        except Exception as e:
-            print("Error in monitor message:", e)
-
-    def update_ui(self):
-        try:
-            # Check if there is new data in the queue
-            while True:
-                message = self.message_queue.get_nowait()
-                print("hiii")
-                # Update your UI with the new data
-                self.chat_ui.display_message(from_user=message.sender, message=message.message)
-        except queue.Empty:
-            pass
-
-        # Schedule the next UI update after 100ms
-        self.root.after(100, self.update_ui)
+                    self.chat_ui.display_message(from_user=message.sender, message=message.message)
+            except Exception as e:
+                print("Error in monitor message:", e)
 
     def _handle_get_inbox(self):
         settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
