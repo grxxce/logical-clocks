@@ -13,6 +13,9 @@ from UI.chat import ChatUI
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+import queue
+import threading
+
 # Configure logging set-up. We want to log times & types of logs, as well as
 # function names & the subsequent message.
 import logging
@@ -30,6 +33,9 @@ class Client:
         self.stub = service_pb2_grpc.MessageServerStub(self.channel)
         self.root = tk.Tk()
         self.show_login_ui()
+
+        self.message_queue = queue.Queue()
+        self.messageObservation = threading.Thread(target=self._monitor_messages, daemon=True)
 
     def run(self):
         try: 
@@ -104,6 +110,9 @@ class Client:
             settings=settings,
         )
 
+        self.update_ui()
+        self.messageObservation.start()
+
     def _handle_login(self, username, password):
         response = self.stub.Login(service_pb2.LoginRequest(username=username, password=password))
         logger.info(f"Client {username} sent login request to server.")
@@ -146,6 +155,33 @@ class Client:
     def _handle_chat_message(self, recipient, message):
         response = self.stub.SendMessage(service_pb2.Message(sender=self.current_user, recipient=recipient, message=message))
     
+    def _monitor_messages(self):
+        message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
+        print('hi')
+        print(message_iterator)
+        try:
+            print(message_iterator)
+            while True:
+                for message in message_iterator:
+                    print(message)
+                    self.message_queue.put(message)
+        except Exception as e:
+            print("Error in monitor message:", e)
+
+    def update_ui(self):
+        try:
+            # Check if there is new data in the queue
+            while True:
+                message = self.message_queue.get_nowait()
+                print("hiii")
+                # Update your UI with the new data
+                self.chat_ui.display_message(from_user=message.sender, message=message.message)
+        except queue.Empty:
+            pass
+
+        # Schedule the next UI update after 100ms
+        self.root.after(100, self.update_ui)
+
     def _handle_get_inbox(self):
         settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
         settings = settings_response.setting

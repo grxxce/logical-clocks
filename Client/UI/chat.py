@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
+from collections import defaultdict
+
 class ChatUI:
     def __init__(self, root, callbacks, username, all_users, pending_messages, settings=30):
         self.root = root
@@ -9,7 +11,8 @@ class ChatUI:
         self.settings = tk.IntVar(value=settings)
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
-        self.new_messages = pending_messages
+        # self.new_messages = pending_messages
+        self.new_messages = {}
         self.selected_recipient = None
         
         # Store callbacks
@@ -289,6 +292,8 @@ class ChatUI:
             self.chat_histories[from_user] = []
         
         if from_user not in self.new_messages:
+            print(type(from_user), from_user)
+            print(type(self.new_messages))
             self.new_messages[from_user] = []
 
         self.chat_histories[from_user].append({

@@ -125,6 +125,7 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             )
     
     def MonitorMessages(self, request, context):
+        print("in monitor messages")
         try:
             # client_stream = context.peer()
             client_stream = context
@@ -132,8 +133,12 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             print("active clients: ", self.active_clients)
             while True:
                 if self.message_queue[request.username]:
+                    print("message queue", self.message_queue[request.username])
+                    print("AHHHHH")
                     message = self.message_queue[request.username].pop(0)
+                    print("popped message", message, type(message))
                     yield message
+                    print("done")
         except Exception as e:
             print("Error: ", e)
 
