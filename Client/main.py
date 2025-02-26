@@ -1,28 +1,30 @@
-import grpc
-from concurrent import futures
 import sys
 import os
+import grpc
+import threading
+import logging
+from datetime import datetime
+# Import our proto materials
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from proto import service_pb2
 from proto import service_pb2_grpc
-from google.protobuf import empty_pb2
-from datetime import datetime
-
+# Import UI Helpers
 from UI.signup import LoginUI
 from UI.chat import ChatUI
 import tkinter as tk
 from tkinter import ttk, messagebox
-import threading
 
+
+# MARK: Logger Initialization
 # Configure logging set-up. We want to log times & types of logs, as well as
 # function names & the subsequent message.
-import logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
+# MARK: Client Class
 class Client:
     def __init__(self, host, port):
         self.host = host
@@ -32,45 +34,15 @@ class Client:
         self.root = tk.Tk()
         self.show_login_ui()
 
+        # Create a background task for monitoring for new messages from the server.
         self.messageObservation = threading.Thread(target=self._monitor_messages, daemon=True)
 
     def run(self):
         try: 
             self.root.mainloop()
         finally:
-            #todo: remove user from active clients
+            #TODO: do we stop the thread here?
             pass
-
-        # MONITOR
-        # responses = stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username="testuser"))
-        # _ = stub.SendMessage(service_pb2.Message(
-        #     sender="testuser",
-        #     recipient="testuser2",
-        #     message="Hello, world 1! a real new mesage",
-        #     timestamp="time"
-        # ))
-
-        # GET PENDING MESSAGE
-        # responses = stub.GetPendingMessage(service_pb2.PendingMessageRequest(username="testuser2", inbox_limit=1))
-
-        # DELETE ACCOUNT
-        # response = stub.DeleteAccount(service_pb2.DeleteAccountRequest(username="testuser2"))
-        # responses = stub.GetUsers(service_pb2.GetUsersRequest(username="testuser2"))
-
-        # SAVE SETTINGS
-        # _ = stub.SaveSettings(service_pb2.SaveSettingsRequest(username="testuser", setting=100))
-        # GET SETTINGS
-        # response = stub.GetSettings(service_pb2.GetSettingsRequest(username="testuser"))
-        # print("response: ", response)
-
-        # ITERATE THROUGH STREAM
-        # try:
-        #     for response in responses:
-        #         print("response: ", response)
-        #         # Access specific fields from the GetUsersResponse message
-        # except Exception as e:
-        #     print("error: ", e)
-        
 
     def show_login_ui(self):
         """Show the login UI."""
@@ -97,7 +69,7 @@ class Client:
             'save_settings': self._handle_save_settings,
             'delete_account': self._handle_delete_account
         }
-        
+
         self.chat_ui = ChatUI(
             root=self.root,
             callbacks=callbacks,
@@ -107,58 +79,53 @@ class Client:
             settings=settings,
         )
 
+        # After setting up the UI, start observing for new messages. 
+        # This allows us to be ready to add the messages to the UI instantly.
         self.messageObservation.start()
 
     def _handle_login(self, username, password):
         response = self.stub.Login(service_pb2.LoginRequest(username=username, password=password))
         logger.info(f"Client {username} sent login request to server.")
         if response.status == service_pb2.LoginResponse.LoginStatus.SUCCESS:
-            settings, all_users, pending_messages = self._handle_setup(username)
-            self.show_chat_ui(username, settings, all_users, pending_messages)
+            settings, all_users = self._handle_setup(username)
+            self.show_chat_ui(username, settings, all_users, {})
         else:
+            logger.warning(f"Login failed for user {username} with message {response.message}")
             messagebox.showerror("Login Failed", response.message)
     
     def _handle_register(self, username, password, email):
         response = self.stub.Register(service_pb2.RegisterRequest(username=username, password=password, email=email))
         logger.info(f"Client {username} sent register request to server.")
         if response.status == service_pb2.RegisterResponse.RegisterStatus.SUCCESS:
-            settings, all_users, pending_messages = self._handle_setup(username)
-            self.show_chat_ui(username, settings, all_users, pending_messages)
+            logger.info(f"Client {username} registered successfully.")
+            settings, all_users = self._handle_setup(username)
+            self.show_chat_ui(username, settings, all_users, {})
         else:
+            logger.warning(f"Register failed for {username} with message {response.message}.")
             messagebox.showerror("Register Failed", response.message)
 
     def _handle_setup(self, username):
         '''
         After successful registration or login, handle:
-        (1) Allow user to monitor messages
-        (2) Fetch and return list of online users
-        (3) Fetch and return user's settings
-        (4) Fetch and return list of pending messages
+        (1) Fetch and return list of online users
+        (2) Fetch and return user's settings
         '''
-
         try:
+            logger.info(f"Setting up users and settings for {username}")
             user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
             all_users = [user.username for user in user_responses]
 
             settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=username))
             settings = settings_response.setting
-
-            # pending_responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=username, inbox_limit=settings))
-            # print("pending in client", pending_responses)
-            # for msg in pending_responses:
-            #     print("I AM A MESSAGE DOING SOMETHING", msg)
-            # self.pending_messages = [pending_message for pending_message in pending_responses]
-            pending_messages = ""
                     
-            return settings, all_users, pending_messages
+            return settings, all_users
         except Exception as e:
-            print("Failed in setup with error:", e)
+            logger.error(f"Failed in setup with error: {e}")
             sys.exit(1)
 
     def _handle_send_message(self, recipient, message):
         try: 
-            print("attempting to send messages")
-
+            logger.info(f"Sending message request to {recipient} with message: {message}")
             message_request = service_pb2.Message(
                 sender=self.current_user,
                 recipient=recipient,
@@ -168,39 +135,38 @@ class Client:
             response = self.stub.SendMessage(message_request)
 
             if response.status == service_pb2.MessageResponse.MessageStatus.SUCCESS:
-                print("message sent successfully")
+                logger.info(f"Message sent to {recipient} successfully")
             else:
-                print("message not sent")
+                logger.error(f"Message failed to send to {recipient}")
 
         except Exception as e:
-            print("error: ", e)
+            logger.error(f"Message failed with error to send to {recipient} with error: {e}")
             sys.exit(1)
     
     def _monitor_messages(self):
         try:
-
+            logger.info(f"Starting message monitoring...")
             message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
             while True:
-                try:
-                    for message in message_iterator:
-                        self.chat_ui.display_message(from_user=message.sender, message=message.message)
-                except Exception as e:
-                    print("Error in monitor message:", e)
+                for message in message_iterator:
+                    self.chat_ui.display_message(from_user=message.sender, message=message.message)
+
         except Exception as e:
-            print("Failed with error in monitor messages:", e)
+            logger.error(f"Failed with error in monitor messages: {e}")
             sys.exit(1)
 
     def _handle_get_inbox(self):
+        # Note: this is the function that handles pending messages!
         try:
-            print("getting inbox")
+            logger.info("Send request to get pending messages and update inbox.")
             settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
             settings = settings_response.setting
             
-            print("getting pending messages")
             responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user, inbox_limit=settings))
 
             pending_messages = {}
             for response in responses:
+                # If there are no messages yet from this sender, create an empty list to add to.
                 if response.message.sender not in pending_messages:
                     pending_messages[response.message.sender] = []
                 pending_messages[response.message.sender].append(
@@ -210,23 +176,26 @@ class Client:
                         'timestamp': response.message.timestamp
                     }
                 )
-            print("these are the pending messages:", pending_messages)
+            logger.info(f"Retrieved pending messages: {pending_messages}")
             return pending_messages
+        
         except Exception as e:
-            print("Failed in handle get inbox with error:", e)
+            logger.error(f"Failed in handle get inbox with error: {e}")
             sys.exit(1)
     
     def _handle_save_settings(self, settings):
+        logger.info(f"Sent request to update settings to have a limit of {settings}")
         response = self.stub.SaveSettings(service_pb2.SaveSettingsRequest(username=self.current_user, setting=settings))
 
     def _handle_delete_account(self):
+        logger.info("Sending a request to delete account.")
         response = self.stub.DeleteAccount(service_pb2.DeleteAccountRequest(username=self.current_user))
         if response.status == service_pb2.DeleteAccountResponse.DeleteAccountStatus.SUCCESS:
             self.root.destroy()
         else:
             messagebox.showerror("Delete Account Failed", response.message)
 
-
+# MARK: MAIN
 if __name__ == "__main__":
     client = Client(host="localhost", port=5001)
     client.run()

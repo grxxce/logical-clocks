@@ -2,6 +2,16 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
 from collections import defaultdict
+import logging
+
+# MARK: Logger Initialization
+# Configure logging set-up. We want to log times & types of logs, as well as
+# function names & the subsequent message.
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 class ChatUI:
     def __init__(self, root, callbacks, username, all_users, pending_messages, settings=30):
@@ -12,11 +22,10 @@ class ChatUI:
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
         self.new_messages = pending_messages
-        # self.new_messages = {}
+        self.pending_messages = pending_messages
+
         self.selected_recipient = None
 
-        self.pending_messages = pending_messages
-        
         # Store callbacks
         self.send_message_callback = callbacks.get('send_message')
         self.get_inbox_callback = callbacks.get('get_inbox')
@@ -157,12 +166,11 @@ class ChatUI:
         for msg in sent_messages:
             preview = f"{msg['recipient']} ({msg['timestamp']}): {msg['message'][:30]}..."
             self.sent_list.insert(tk.END, preview)
-            
-        print(f"Updated sent messages list with {len(sent_messages)} messages")
+
+        logger.info(f"Updated sent messages list with {len(sent_messages)} messages")
 
     def _on_sent_select(self, event):
         """Handle sent message selection and deletion"""
-        print("on_sent_select")
         selection = self.sent_list.curselection()
         if not selection:
             return
@@ -178,7 +186,7 @@ class ChatUI:
             timestamp = preview.split('(')[1].split(')')[0]
             message = preview.split('): ')[1].split('...')[0]
             
-            print(f"Selected message - Recipient: {recipient}, Time: {timestamp}, Message: {message}")
+            logger.info(f"Selected message - Recipient: {recipient}, Time: {timestamp}, Message: {message}")
             
             # Confirm deletion
             if not messagebox.askyesno("Delete Message", 
@@ -194,7 +202,7 @@ class ChatUI:
                 self.display_stored_messages()
                 
         except Exception as e:
-            print(f"Error processing sent message deletion: {e}")
+            logger.error(f"Error processing sent message deletion: {e}")
             messagebox.showerror("Error", "Failed to process message deletion")
     
     def _remove_message_from_history(self, recipient, message, timestamp):
@@ -206,7 +214,7 @@ class ChatUI:
                 if not (msg['message'] == message and 
                        msg['timestamp'] == timestamp)
             ]
-            print(f"Removed message from chat history with {recipient}")
+            logger.info(f"Removed message from chat history with {recipient}")
 
     def create_chat_panel(self):
         """Create the chat panel (right side)"""
@@ -283,7 +291,7 @@ class ChatUI:
     def display_message(self, from_user, message):
         """Updates chat history (but does not display messages)"""
         try:
-            print("display_message: ", from_user, message)
+            logger.info(f"Displaying message from {from_user}: {message}")
             timestamp = datetime.now().strftime('%H:%M')
 
             if from_user == self.username:
@@ -291,7 +299,7 @@ class ChatUI:
             
             # Store message in chat history
             if from_user not in self.chat_histories:
-                print("from_user not in chat_histories")
+                logger.info(f"{from_user} is not in chat_histories, creating a new chat_history.")
                 self.chat_histories[from_user] = []
             
             if from_user not in self.new_messages:
@@ -309,12 +317,10 @@ class ChatUI:
                 'timestamp': timestamp
             })
 
-            print("chat_histories", self.chat_histories)
-
             self.display_stored_messages()
             self._refresh_inbox()
         except Exception as e:
-            print("Failed with error in display_message:", e)
+            logger.error(f"Failed with error in display_message: {e}")
 
     def display_sent_message(self, message):
         """Display a sent message in the chat area."""
@@ -482,44 +488,29 @@ class ChatUI:
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
-        print("refreshing inbox with new message:", self.pending_messages)
+        logger.info(f"Refreshing inbox with pending messages: {self.pending_messages}")
 
         try:
             self.pending_messages = self.get_inbox_callback()
-            print("HERE I AM WOOO", self.pending_messages)
 
             self.inbox_list.delete(0, tk.END)
             if self.pending_messages:
-                print("BBBBBB", self.pending_messages)
                 for sender, message_list in self.pending_messages.items():
-                    print("message list", message_list)
                     for msg in message_list:
-                        print("message", msg)
                         self.inbox_list.insert(tk.END, msg["message"])
-                        print('here')
                         self.inbox_list.message_data = self.pending_messages
-
-
-            # if self.new_messages:
-            #     for key, val in self.new_messages.items():
-            #         print(key, val)
-                        # for msg in val:
-                            # self.inbox_list.insert(tk.END, msg.message)
-
-                    # for msg in self.new_messages:
-                    #     print("hi", len(self.new_messages))
-
-                        # self.inbox_list.insert(tk.END, msg.message.message)
-                        # self.inbox_list.insert(tk.END, self.new_messages[msg].message)
-                        # self.inbox_list.message_data = self.new_messages
+                        # We also must add these messages to the message history,
+                        # this will allow them to appear in conversation histories.
+                        if sender not in self.chat_histories:
+                            self.chat_histories[sender] = []
+                        self.chat_histories[sender].append({
+                            'sender': sender,
+                            'message': msg["message"],
+                            'timestamp': msg["timestamp"]
+                        })
+        
         except Exception as e:
-            print("Failed with error in _refresh_inbox", e)
-            
-        # else:
-        #     print("no messages")
-
-        # self.new_messages = self.get_inbox_callback()
-
+            logger.error(f"Failed with error in _refresh_inbox: {e}")
     
     def update_search_results(self, users):
         """Update the search results listbox"""
@@ -584,15 +575,12 @@ class ChatUI:
     def _on_history_change(self):
         """Handle message history limit change"""
         try:
-            print("on_history_change")
             self._save_settings()
         except ValueError:
-            print("invalid history limit")
             self.history_var.set("50")  # Reset to default if invalid
     
     def _save_settings(self):
         """Save user settings"""
-        print("in save settings")
         try:
             # Call callback to save settings
             if hasattr(self, 'save_settings_callback'):
