@@ -14,6 +14,8 @@ class ChatUI:
         # self.new_messages = pending_messages
         self.new_messages = {}
         self.selected_recipient = None
+
+        self.pending_messages = pending_messages
         
         # Store callbacks
         self.send_message_callback = callbacks.get('send_message')
@@ -280,36 +282,39 @@ class ChatUI:
     
     def display_message(self, from_user, message):
         """Updates chat history (but does not display messages)"""
-        print("display_message: ", from_user, message)
-        timestamp = datetime.now().strftime('%H:%M')
+        try:
+            print("display_message: ", from_user, message)
+            timestamp = datetime.now().strftime('%H:%M')
 
-        if from_user == self.username:
-            self._refresh_sent()
-        
-        # Store message in chat history
-        if from_user not in self.chat_histories:
-            print("from_user not in chat_histories")
-            self.chat_histories[from_user] = []
-        
-        if from_user not in self.new_messages:
-            self.new_messages = defaultdict(list)
-            self.new_messages[from_user] = []
+            if from_user == self.username:
+                self._refresh_sent()
+            
+            # Store message in chat history
+            if from_user not in self.chat_histories:
+                print("from_user not in chat_histories")
+                self.chat_histories[from_user] = []
+            
+            if from_user not in self.new_messages:
+                self.new_messages = defaultdict(list)
+                self.new_messages[from_user] = []
 
-        self.chat_histories[from_user].append({
-            'sender': from_user,
-            'message': message,
-            'timestamp': timestamp
-        })
-        self.new_messages[from_user].append({
-            'sender': from_user,
-            'message': message,
-            'timestamp': timestamp
-        })
+            self.chat_histories[from_user].append({
+                'sender': from_user,
+                'message': message,
+                'timestamp': timestamp
+            })
+            self.new_messages[from_user].append({
+                'sender': from_user,
+                'message': message,
+                'timestamp': timestamp
+            })
 
-        print("chat_histories", self.chat_histories)
+            print("chat_histories", self.chat_histories)
 
-        self.display_stored_messages()
-        self._refresh_inbox()
+            self.display_stored_messages()
+            self._refresh_inbox()
+        except Exception as e:
+            print("Failed with error in display_message:", e)
 
     def display_sent_message(self, message):
         """Display a sent message in the chat area."""
@@ -478,11 +483,30 @@ class ChatUI:
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
         print("refreshing inbox with new message:", self.new_messages)
-        self.inbox_list.delete(0, tk.END)
-        if self.new_messages:
-            for msg in self.new_messages:
-                self.inbox_list.insert(tk.END, msg.message.message)
-                self.inbox_list.message_data = self.new_messages
+        try:
+            self.inbox_list.delete(0, tk.END)
+            # if self.pending_messages:
+                # print(self.pending_messages)
+                # for msg in self.pending_messages:
+                #     print("message", msg)
+                #     self.inbox_list.insert(tk.END, msg.message)
+                #     self.inbox_list.message_data = self.pending_messages
+
+
+            # if self.new_messages:
+            #     for key, val in self.new_messages.items():
+            #         print(key, val)
+                        # for msg in val:
+                            # self.inbox_list.insert(tk.END, msg.message)
+
+                    # for msg in self.new_messages:
+                    #     print("hi", len(self.new_messages))
+
+                        # self.inbox_list.insert(tk.END, msg.message.message)
+                        # self.inbox_list.insert(tk.END, self.new_messages[msg].message)
+                        # self.inbox_list.message_data = self.new_messages
+        except Exception as e:
+            print("Failed with error in _refresh_inbox", e)
             
         else:
             print("no messages")

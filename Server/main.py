@@ -143,8 +143,8 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
         except Exception as e:
             print("Error: ", e)
         finally:
-            print("client disconnected")
-            del self.active_clients[request.username]
+            print("client disconnected??? what went wrong??")
+            # del self.active_clients[request.username]
 
     def DeleteAccount(self, request, context):
         try:

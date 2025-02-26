@@ -135,7 +135,7 @@ class Client:
         (3) Fetch and return user's settings
         (4) Fetch and return list of pending messages
         '''
-        _ = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=username))
+        # _ = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=username))
 
         user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
         all_users = [user.username for user in user_responses]
@@ -170,13 +170,18 @@ class Client:
             print("error: ", e)
     
     def _monitor_messages(self):
-        message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
-        while True:
-            try:
-                for message in message_iterator:
-                    self.chat_ui.display_message(from_user=message.sender, message=message.message)
-            except Exception as e:
-                print("Error in monitor message:", e)
+        try:
+
+            message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
+            while True:
+                try:
+                    print("AHH")
+                    for message in message_iterator:
+                        self.chat_ui.display_message(from_user=message.sender, message=message.message)
+                except Exception as e:
+                    print("Error in monitor message:", e)
+        except Exception as e:
+            print("Failed with error in monitor messages:", e)
 
     def _handle_get_inbox(self):
         print("getting inbox")
