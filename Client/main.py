@@ -135,19 +135,25 @@ class Client:
         (3) Fetch and return user's settings
         (4) Fetch and return list of pending messages
         '''
-        # _ = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=username))
 
-        user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
-        all_users = [user.username for user in user_responses]
+        try:
+            user_responses = self.stub.GetUsers(service_pb2.GetUsersRequest(username=username))            
+            all_users = [user.username for user in user_responses]
 
-        settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=username))
-        settings = settings_response.setting
+            settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=username))
+            settings = settings_response.setting
 
-        pending_responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=username, inbox_limit=settings))
-        pending_messages = [pending_message for pending_message in pending_responses]
-        # pending_messages = ""
-                
-        return settings, all_users, pending_messages
+            # pending_responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=username, inbox_limit=settings))
+            # print("pending in client", pending_responses)
+            # for msg in pending_responses:
+            #     print("I AM A MESSAGE DOING SOMETHING", msg)
+            # self.pending_messages = [pending_message for pending_message in pending_responses]
+            pending_messages = ""
+                    
+            return settings, all_users, pending_messages
+        except Exception as e:
+            print("Failed in setup with error:", e)
+            sys.exit(1)
 
     def _handle_send_message(self, recipient, message):
         try: 
@@ -168,6 +174,7 @@ class Client:
 
         except Exception as e:
             print("error: ", e)
+            sys.exit(1)
     
     def _monitor_messages(self):
         try:
@@ -175,35 +182,39 @@ class Client:
             message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
             while True:
                 try:
-                    print("AHH")
                     for message in message_iterator:
                         self.chat_ui.display_message(from_user=message.sender, message=message.message)
                 except Exception as e:
                     print("Error in monitor message:", e)
         except Exception as e:
             print("Failed with error in monitor messages:", e)
+            sys.exit(1)
 
     def _handle_get_inbox(self):
-        print("getting inbox")
-        settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
-        settings = settings_response.setting
-        
-        print("getting pending messages")
-        responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user, inbox_limit=settings))
+        try:
+            print("getting inbox")
+            settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
+            settings = settings_response.setting
+            
+            print("getting pending messages")
+            responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user, inbox_limit=settings))
 
-        pending_messages = {}
-        for response in responses:
-            if response.message.sender not in pending_messages:
-                pending_messages[response.message.sender] = []
-            pending_messages[response.message.sender].append(
-                {
-                    'sender': response.message.sender,
-                    'message': response.message.message,
-                    'timestamp': response.message.timestamp
-                }
-            )
-        print("these are the pending messages:", pending_messages)
-        return pending_messages
+            pending_messages = {}
+            for response in responses:
+                if response.message.sender not in pending_messages:
+                    pending_messages[response.message.sender] = []
+                pending_messages[response.message.sender].append(
+                    {
+                        'sender': response.message.sender,
+                        'message': response.message.message,
+                        'timestamp': response.message.timestamp
+                    }
+                )
+            print("these are the pending messages:", pending_messages)
+            return pending_messages
+        except Exception as e:
+            print("Failed in handle get inbox with error:", e)
+            sys.exit(1)
     
     def _handle_save_settings(self, settings):
         response = self.stub.SaveSettings(service_pb2.SaveSettingsRequest(username=self.current_user, setting=settings))

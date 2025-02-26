@@ -26,7 +26,6 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
     
     def Register(self, request, context):
         try:
-            
             status, message = AuthHandler.register_user(request.username, request.password, request.email)
             
             if status:
@@ -92,18 +91,23 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
                 )
             if request.recipient in self.active_clients.keys():
                 print("found recipient")
-                self.message_queue[request.recipient].append(message_request)
-                print("sent to found recipient")
-                return service_pb2.MessageResponse(
-                    status=service_pb2.MessageResponse.MessageStatus.SUCCESS
-                )
-            else:
-                print("no recipient found")
-                self.pending_messages[request.recipient].append(message_request)
-                print("added to queue")
-                return service_pb2.MessageResponse(
-                    status=service_pb2.MessageResponse.MessageStatus.SUCCESS
-                )
+                # Verify that the connection is still active, or treat this like our pending messages.
+                if not self.active_clients[request.recipient].is_active():
+                    print("The recipient has become inactive. Removing them from active clients list.")
+                    # Remove the disconnected client from the active list.
+                    self.active_clients.pop(request.recipient)
+                else:
+                    self.message_queue[request.recipient].append(message_request)
+                    print("sent to found recipient", message_request)
+                    return service_pb2.MessageResponse(
+                        status=service_pb2.MessageResponse.MessageStatus.SUCCESS
+                    )
+            
+            # Otherwise
+            self.pending_messages[request.recipient].append(message_request)
+            return service_pb2.MessageResponse(
+                status=service_pb2.MessageResponse.MessageStatus.SUCCESS
+            )
         except Exception as e:
             print("Error sending message: ", e)
             pass
@@ -118,33 +122,47 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
                 pending_message = self.pending_messages[request.username].pop(0)
                 yield service_pb2.PendingMessageResponse(
                     status=service_pb2.PendingMessageResponse.PendingMessageStatus.SUCCESS,
-                    message=pending_message,
+                    message=pending_message
                 )
         except:
             yield service_pb2.PendingMessageResponse(
                 status=service_pb2.PendingMessageResponse.PendingMessageStatus.FAILURE,
-                message="failed to get pending messages",
+                message="failed to get pending messages"
             )
     
     def MonitorMessages(self, request, context):
+        print("monitor messages")
         try:
+            # Check to ensure that this isn't creating a double connection.
+            # This could happen if the client was lost and is restarting.
+            print("GET ACTIVE CLIENTS: ", self.active_clients)
+
+            if request.username in self.active_clients:
+                # Remove it and start again
+                self.active_clients.pop(request.username)
+            
+            # Add our client to our active clients and begin listening for messages
+            # via a stream.
             client_stream = context
             self.active_clients[request.username] = client_stream
-            print("GET ACTIVE CLIENTS: ", self.active_clients)
+            
             while True:
-                check_status = context.peer()
-                if check_status:
-                    if len(self.message_queue[request.username]) > 0:
+                # If we have a message ready to send, verify our status and yield the message
+                # to the stream.
+                if len(self.message_queue[request.username]) > 0:
+                    if context.is_active():
+                        print("in check status and yielding message")
                         message = self.message_queue[request.username].pop(0)
                         yield message
-                        print("done yielding message to recipient")
-                else:
-                    self.active_clients.pop(request.username)
+                    else:
+                        print("Lost connection to client. Remove from active clients for username:", request.username)
+                        self.active_clients.pop(request.username)
+
         except Exception as e:
             print("Error: ", e)
         finally:
-            print("client disconnected??? what went wrong??")
-            # del self.active_clients[request.username]
+            print(f"Client disconnected with username: {request.username}")
+            self.active_clients.pop(request.username)
 
     def DeleteAccount(self, request, context):
         try:

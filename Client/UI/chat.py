@@ -11,8 +11,8 @@ class ChatUI:
         self.settings = tk.IntVar(value=settings)
 
         self.chat_histories = {}  # Format: {username: [{'sender': str, 'message': str, 'timestamp': str}]}
-        # self.new_messages = pending_messages
-        self.new_messages = {}
+        self.new_messages = pending_messages
+        # self.new_messages = {}
         self.selected_recipient = None
 
         self.pending_messages = pending_messages
@@ -482,15 +482,22 @@ class ChatUI:
     
     def _refresh_inbox(self):
         """Refresh inbox conversations"""
-        print("refreshing inbox with new message:", self.new_messages)
+        print("refreshing inbox with new message:", self.pending_messages)
+
         try:
+            self.pending_messages = self.get_inbox_callback()
+            print("HERE I AM WOOO", self.pending_messages)
+
             self.inbox_list.delete(0, tk.END)
-            # if self.pending_messages:
-                # print(self.pending_messages)
-                # for msg in self.pending_messages:
-                #     print("message", msg)
-                #     self.inbox_list.insert(tk.END, msg.message)
-                #     self.inbox_list.message_data = self.pending_messages
+            if self.pending_messages:
+                print("BBBBBB", self.pending_messages)
+                for sender, message_list in self.pending_messages.items():
+                    print("message list", message_list)
+                    for msg in message_list:
+                        print("message", msg)
+                        self.inbox_list.insert(tk.END, msg["message"])
+                        print('here')
+                        self.inbox_list.message_data = self.pending_messages
 
 
             # if self.new_messages:
@@ -508,10 +515,11 @@ class ChatUI:
         except Exception as e:
             print("Failed with error in _refresh_inbox", e)
             
-        else:
-            print("no messages")
+        # else:
+        #     print("no messages")
 
-        self.new_messages = self.get_inbox_callback()
+        # self.new_messages = self.get_inbox_callback()
+
     
     def update_search_results(self, users):
         """Update the search results listbox"""
