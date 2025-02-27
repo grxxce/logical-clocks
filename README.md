@@ -42,6 +42,11 @@ DIY-WIRE-PROTOCOL/
    python Client/main.py --ip server_ip --port 5001
    ```
 
+5. Run the tests:
+   ```bash
+   python -m pytest -v
+   ```
+
 
 ## gRPC  Specification
 
