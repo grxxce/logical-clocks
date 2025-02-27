@@ -1,4 +1,67 @@
 # DIY Wire Protocol Chat Application
+## Assignment 2 Updates:
+### Updated Directory Structure
+```
+DIY-WIRE-PROTOCOL/
+├── Client/
+│   ├── Model/
+│   │   └── ServerRequest.py
+│   ├── UI/
+│   │   ├── chat.py
+│   │   └── signup.py
+│   ├── main.py
+│   └── test_client.py
+├── Server/
+│   ├── Model/
+│   │   └── SerializationManager.py
+│   ├── auth_handler.py
+│   ├── database.py
+│   ├── main.py
+│   ├── test_server.py
+│   └── service_actions.py
+├── proto/
+│   ├── service.proto
+│   ├── service_pb2.py
+│   └── service_pb2_grpc.py
+```
+## Updated Setup
+1. Generate Protocol Buffer code (only needed if you modify the proto files):
+   ```bash
+   python -m grpc_tools.protoc -I./proto --python_out=. --grpc_python_out=. ./proto/service.proto
+   ```
+
+2. Start the server:
+   ```bash
+   python Server/main.py --port 5001
+   ```
+
+3. In a separate terminal, start the client:
+   ```bash
+   python Client/main.py --host localhost --port 5001
+   ```
+
+
+## gRPC  Specification
+
+The application supports **three protocols**:
+The gRPC implementation uses Protocol Buffers for efficient, type-safe communication:
+- **Service Definition**: Defined in `proto/service.proto` using the Protocol Buffers IDL
+- **Generated Code**: The protocol compiler generates client and server code in `service_pb2.py` and `service_pb2_grpc.py`
+- **RPC Methods**: Supports both unary calls (request-response) and streaming for real-time messaging
+- **Message Types**: Strongly typed message definitions for all operations (login, registration, messaging, etc.)
+- **Streaming Support**: Bidirectional streaming for real-time message delivery and monitoring
+
+Key gRPC services include:
+- `Register`: User registration with email validation
+- `Login`: User authentication
+- `SendMessage`: Message delivery to recipients
+- `GetUsers`: Retrieves available contacts
+- `GetPendingMessage`: Streams pending messages to clients
+- `MonitorMessages`: Real-time message monitoring via server streaming
+- `DeleteAccount`: Account management
+- `SaveSettings` and `GetSettings`: User preference management
+
+---
 
 ## Overview
 This project is a client-server chat application that implements a flexible wire protocol for messaging. It supports both a custom delimiter-based protocol and a JSON-based protocol, selectable via a command-line flag. The application features user authentication, real-time messaging, and a graphical user interface (GUI) built with Tkinter.
