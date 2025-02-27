@@ -4,16 +4,12 @@
 ```
 DIY-WIRE-PROTOCOL/
 ├── Client/
-│   ├── Model/
-│   │   └── ServerRequest.py
 │   ├── UI/
 │   │   ├── chat.py
 │   │   └── signup.py
 │   ├── main.py
 │   └── test_client.py
 ├── Server/
-│   ├── Model/
-│   │   └── SerializationManager.py
 │   ├── auth_handler.py
 │   ├── database.py
 │   ├── main.py
@@ -32,12 +28,12 @@ DIY-WIRE-PROTOCOL/
 
 2. Start the server:
    ```bash
-   python Server/main.py --port 5001
+   python Server/main.py --ip your_ip --port 5001
    ```
 
 3. In a separate terminal, start the client:
    ```bash
-   python Client/main.py --host localhost --port 5001
+   python Client/main.py --ip server_ip --port 5001
    ```
 
 
@@ -62,6 +58,8 @@ Key gRPC services include:
 - `SaveSettings` and `GetSettings`: User preference management
 
 ---
+
+# Original Submission
 
 ## Overview
 This project is a client-server chat application that implements a flexible wire protocol for messaging. It supports both a custom delimiter-based protocol and a JSON-based protocol, selectable via a command-line flag. The application features user authentication, real-time messaging, and a graphical user interface (GUI) built with Tkinter.
