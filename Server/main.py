@@ -4,6 +4,7 @@ import grpc
 import datetime
 import argparse
 import logging
+import socket # For retrieving local IP address only
 from collections import defaultdict
 from concurrent import futures
 # Handle our file paths properly.
@@ -399,21 +400,38 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
 
 # MARK: Server Initialization
 
-def serve(port):
+def serve(ip, port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     service_pb2_grpc.add_MessageServerServicer_to_server(MessageServer(), server)
-    server.add_insecure_port(f'[::]:{port}')
+    server.add_insecure_port(f'{ip}:{port}')
     server.start()
-    logger.info(f"Server started on port {port}")
+    logger.info(f"Server started on port {port} for ip {ip}")
     server.wait_for_termination()
 
 
 # MARK: Command-line arguments.
+
+# Validate an IP address
+def validate_ip(value):
+    try:
+        # Try to convert the value to a valid IP address using socket
+        socket.inet_aton(value)  # This will raise an error if not a valid IPv4 address
+        return value
+    except socket.error:
+        raise argparse.ArgumentTypeError(f"Invalid IP address: {value}")
+
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Chat Client')
 
     # Add arguments
+    parser.add_argument(
+        '--ip',
+        type=validate_ip,
+        required=True,
+        help='Server IP'
+    )
+
     parser.add_argument(
         '--port',
         type=int,
@@ -427,6 +445,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Set up arguments.
     args = parse_arguments()
+    ip = args.ip
     port = args.port
     # Start our server
-    serve(port)
+    serve(ip, port)

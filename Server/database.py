@@ -1,6 +1,6 @@
 import sqlite3
-class DatabaseManager:
 
+class DatabaseManager:
     @staticmethod
     def get_contacts():
         """Register a new user."""
@@ -16,21 +16,8 @@ class DatabaseManager:
         except Exception as e:
             return f"Fetching contacts failed: {str(e)}"
 
-    def get_limits(username):
-        try:
-            with sqlite3.connect('users.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute('SELECT username FROM users')
-                results = cursor.fetchall()
-                usernames = []
-                for row in results:
-                    usernames.append(row[0])
-                return usernames
-        except Exception as e:
-            print(f"Fetching contacts failed: {str(e)}")
-            return f"Fetching contacts failed: {str(e)}"
-
     def delete_account(username):
+        """Remove the given username from the table to delete an account."""
         try:
             with sqlite3.connect('users.db') as conn:
                 cursor = conn.cursor()
@@ -62,6 +49,7 @@ class DatabaseManager:
             return False
 
     def get_settings(username):
+        """Retrieve a user's setting for the limit of notifications from the table."""
         try:
             with sqlite3.connect('users.db') as conn:
                 cursor = conn.cursor()
@@ -73,6 +61,7 @@ class DatabaseManager:
             return False
 
     def save_settings(username, settings):
+        """Save the user's settings in the database or update the existing value."""
         try:
             with sqlite3.connect('users.db') as conn:
                 cursor = conn.cursor()

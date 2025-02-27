@@ -3,6 +3,8 @@ import os
 import grpc
 import threading
 import logging
+import argparse
+import socket # Only for validating IP address inputted.
 from datetime import datetime
 # Import our proto materials
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,6 +28,11 @@ logger = logging.getLogger(__name__)
 
 # MARK: Client Class
 class Client:
+
+    """
+    The Client class creates our UI and the callbacks that make requests to the server.
+    """
+
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -38,10 +45,10 @@ class Client:
         self.messageObservation = threading.Thread(target=self._monitor_messages, daemon=True)
 
     def run(self):
+        """Initialize the client."""
         try: 
             self.root.mainloop()
         finally:
-            #TODO: do we stop the thread here?
             pass
 
     def show_login_ui(self):
@@ -56,7 +63,7 @@ class Client:
 
     def show_chat_ui(self, username, settings, all_users, pending_messages):
         """
-        Create the initial chat UI
+        Create the initial chat UI.
         """
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -83,7 +90,18 @@ class Client:
         # This allows us to be ready to add the messages to the UI instantly.
         self.messageObservation.start()
 
-    def _handle_login(self, username, password):
+    def _handle_login(self, username : str, password : str):
+        """
+        Sends a login request to the server and handles the server's response.
+        If the user successfully logs in, this also calls upon our set-up functionalities.
+
+        Parameters:
+            username (str): the user's username
+            password (str): the user's password
+
+        Returns:
+            If successful, shows the chat, otherwise presents a failure message.
+        """
         response = self.stub.Login(service_pb2.LoginRequest(username=username, password=password))
         logger.info(f"Client {username} sent login request to server.")
         if response.status == service_pb2.LoginResponse.LoginStatus.SUCCESS:
@@ -94,6 +112,18 @@ class Client:
             messagebox.showerror("Login Failed", response.message)
     
     def _handle_register(self, username, password, email):
+        """
+        Sends a register request to the server and handles the server's response.
+        If the user successfully registers, this also calls upon our set-up functionalities.
+
+        Parameters:
+            username (str): the user's username
+            password (str): the user's password
+            email (str): the user's email
+        Returns:
+            If successful, shows the chat, otherwise presents a failure message.
+        """
+
         response = self.stub.Register(service_pb2.RegisterRequest(username=username, password=password, email=email))
         logger.info(f"Client {username} sent register request to server.")
         if response.status == service_pb2.RegisterResponse.RegisterStatus.SUCCESS:
@@ -124,6 +154,7 @@ class Client:
             sys.exit(1)
 
     def _handle_send_message(self, recipient, message):
+        """Sends the server a message request and handles potential failures to deliver the message."""
         try: 
             logger.info(f"Sending message request to {recipient} with message: {message}")
             message_request = service_pb2.Message(
@@ -144,6 +175,11 @@ class Client:
             sys.exit(1)
     
     def _monitor_messages(self):
+        """
+        Creates a request to the server to open a stream. This stream will yield messages that other clients
+        are sending. When the user is supposed to receive a message, it will hear that message by iterating over
+        the stream iterator provided as a response to the RPC call.
+        """
         try:
             logger.info(f"Starting message monitoring...")
             message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
@@ -156,7 +192,11 @@ class Client:
             sys.exit(1)
 
     def _handle_get_inbox(self):
-        # Note: this is the function that handles pending messages!
+        """
+        Sends a request to the server to update the user's pending messages inbox.
+        If the user has pending messages, this will find out and display them by calling upon the server
+        to update the user's inbox. It handles these responses in the form of a stream of Messages.
+        """
         try:
             logger.info("Send request to get pending messages and update inbox.")
             settings_response = self.stub.GetSettings(service_pb2.GetSettingsRequest(username=self.current_user))
@@ -184,10 +224,12 @@ class Client:
             sys.exit(1)
     
     def _handle_save_settings(self, settings):
+        """Send a request to the server to update the user's settings."""
         logger.info(f"Sent request to update settings to have a limit of {settings}")
         response = self.stub.SaveSettings(service_pb2.SaveSettingsRequest(username=self.current_user, setting=settings))
 
     def _handle_delete_account(self):
+        """Send a request to the server to delete the user's account."""
         logger.info("Sending a request to delete account.")
         response = self.stub.DeleteAccount(service_pb2.DeleteAccountRequest(username=self.current_user))
         if response.status == service_pb2.DeleteAccountResponse.DeleteAccountStatus.SUCCESS:
@@ -195,7 +237,43 @@ class Client:
         else:
             messagebox.showerror("Delete Account Failed", response.message)
 
+# MARK: Command-line arguments.
+
+# Validate an IP address
+def validate_ip(value):
+    try:
+        # Try to convert the value to a valid IP address using socket
+        socket.inet_aton(value)  # This will raise an error if not a valid IPv4 address
+        return value
+    except socket.error:
+        raise argparse.ArgumentTypeError(f"Invalid IP address: {value}")
+    
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Chat Client')
+
+    # Add arguments
+    parser.add_argument(
+        '--ip',
+        type=validate_ip,
+        required=True,
+        help='Server IP'    
+    )
+
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=5001,
+        help='Server port (default: 5001)'    
+    )
+
+    return parser.parse_args()
+
 # MARK: MAIN
 if __name__ == "__main__":
-    client = Client(host="localhost", port=5001)
+    # Set up arguments.
+    args = parse_arguments()
+    port = args.port
+    ip = args.ip
+    client = Client(host=ip, port=port)
     client.run()
