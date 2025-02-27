@@ -6,8 +6,6 @@ package message_server;
 
 // The service definition.
 service MessageServer {
-
-    // Allow users to register
     rpc Register (RegisterRequest) returns (RegisterResponse);
     rpc Login (LoginRequest) returns (LoginResponse);
     rpc GetUsers (GetUsersRequest) returns (stream GetUsersResponse);

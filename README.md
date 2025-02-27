@@ -19,19 +19,25 @@ DIY-WIRE-PROTOCOL/
 │   ├── service.proto
 │   ├── service_pb2.py
 │   └── service_pb2_grpc.py
+
 ```
 ## Updated Setup
-1. Generate Protocol Buffer code (only needed if you modify the proto files):
+1. Install the required packages:
+    ```bash 
+    pip install -r requirements.txt
+    ```
+
+2. Generate Protocol Buffer code (only needed if you modify the proto files):
    ```bash
    python -m grpc_tools.protoc -I./proto --python_out=. --grpc_python_out=. ./proto/service.proto
    ```
 
-2. Start the server:
+3. Start the server:
    ```bash
    python Server/main.py --ip your_ip --port 5001
    ```
 
-3. In a separate terminal, start the client:
+4. In a separate terminal, start the client:
    ```bash
    python Client/main.py --ip server_ip --port 5001
    ```
@@ -39,13 +45,10 @@ DIY-WIRE-PROTOCOL/
 
 ## gRPC  Specification
 
-The application supports **three protocols**:
-The gRPC implementation uses Protocol Buffers for efficient, type-safe communication:
 - **Service Definition**: Defined in `proto/service.proto` using the Protocol Buffers IDL
 - **Generated Code**: The protocol compiler generates client and server code in `service_pb2.py` and `service_pb2_grpc.py`
 - **RPC Methods**: Supports both unary calls (request-response) and streaming for real-time messaging
 - **Message Types**: Strongly typed message definitions for all operations (login, registration, messaging, etc.)
-- **Streaming Support**: Bidirectional streaming for real-time message delivery and monitoring
 
 Key gRPC services include:
 - `Register`: User registration with email validation
@@ -59,7 +62,7 @@ Key gRPC services include:
 
 ---
 
-# Original Submission
+# Assignment 1 Submission
 
 ## Overview
 This project is a client-server chat application that implements a flexible wire protocol for messaging. It supports both a custom delimiter-based protocol and a JSON-based protocol, selectable via a command-line flag. The application features user authentication, real-time messaging, and a graphical user interface (GUI) built with Tkinter.
