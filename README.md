@@ -44,7 +44,8 @@ DIY-WIRE-PROTOCOL/
 
 5. Run the tests:
    ```bash
-   python -m pytest -v
+   pytest Client/test_client.py
+   pytest Server/test_server.py
    ```
 
 
