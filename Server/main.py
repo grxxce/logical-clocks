@@ -257,7 +257,6 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             logger.error(f"Failed to send message from {request.sender} to {request.recipient} with error: {e}")
             return service_pb2.MessageResponse(status=service_pb2.MessageResponse.MessageStatus.FAILURE)
 
-    # TODO: technically this returns an iterator over Message? idk how to do that!! same with getUsers and pendingMessages
     def MonitorMessages(self, request : service_pb2.MonitorMessagesRequest, context) -> service_pb2.Message:
         """
         Handles a client's RPC request to subscribe to updates about new messages.
