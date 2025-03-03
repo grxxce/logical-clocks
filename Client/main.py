@@ -75,16 +75,16 @@ class Client:
                     case 1:
                         message =  f"the local clock time is {self.logical_clock}"
                         self._handle_send_message(self.other_vms[0], message)
-                        self.logger.info(f"Sent Message: {message} to machine 2, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
+                        self.logger.info(f"Sent Message: {message} to machine {self.other_vms[0]}, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
                     case 2:
                         message =  f"the local clock time is {self.logical_clock}"
                         self._handle_send_message(self.other_vms[1], message)
-                        self.logger.info(f"Sent Message: {message} to machine 3, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
+                        self.logger.info(f"Sent Message: {message} to machine {self.other_vms[1]}, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
                     case 3:
                         message =  f"the local clock time is {self.logical_clock}"
                         self._handle_send_message(self.other_vms[0], message)
                         self._handle_send_message(self.other_vms[1], message)
-                        self.logger.info(f"Sent Message: {message} to machine 2 and 3, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
+                        self.logger.info(f"Sent Message: {message} to machine {self.other_vms[0]} and {self.other_vms[1]}, Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
                     case _:
                         self.logger.info(f"Internal Update. Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
 

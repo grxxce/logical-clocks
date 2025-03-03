@@ -15,16 +15,6 @@ class MessageServerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Register = channel.unary_unary(
-                '/message_server.MessageServer/Register',
-                request_serializer=service__pb2.RegisterRequest.SerializeToString,
-                response_deserializer=service__pb2.RegisterResponse.FromString,
-                )
-        self.Login = channel.unary_unary(
-                '/message_server.MessageServer/Login',
-                request_serializer=service__pb2.LoginRequest.SerializeToString,
-                response_deserializer=service__pb2.LoginResponse.FromString,
-                )
         self.GetUsers = channel.unary_stream(
                 '/message_server.MessageServer/GetUsers',
                 request_serializer=service__pb2.GetUsersRequest.SerializeToString,
@@ -45,39 +35,11 @@ class MessageServerStub(object):
                 request_serializer=service__pb2.MonitorMessagesRequest.SerializeToString,
                 response_deserializer=service__pb2.Message.FromString,
                 )
-        self.DeleteAccount = channel.unary_unary(
-                '/message_server.MessageServer/DeleteAccount',
-                request_serializer=service__pb2.DeleteAccountRequest.SerializeToString,
-                response_deserializer=service__pb2.DeleteAccountResponse.FromString,
-                )
-        self.SaveSettings = channel.unary_unary(
-                '/message_server.MessageServer/SaveSettings',
-                request_serializer=service__pb2.SaveSettingsRequest.SerializeToString,
-                response_deserializer=service__pb2.SaveSettingsResponse.FromString,
-                )
-        self.GetSettings = channel.unary_unary(
-                '/message_server.MessageServer/GetSettings',
-                request_serializer=service__pb2.GetSettingsRequest.SerializeToString,
-                response_deserializer=service__pb2.GetSettingsResponse.FromString,
-                )
 
 
 class MessageServerServicer(object):
     """The service definition.
     """
-
-    def Register(self, request, context):
-        """Allow users to register
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def Login(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
 
     def GetUsers(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -92,32 +54,12 @@ class MessageServerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetPendingMessage(self, request, context):
-        """Stream because it is an array of messages
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def MonitorMessages(self, request, context):
-        """Stream because we are subscribing for updates
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteAccount(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SaveSettings(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetSettings(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -126,16 +68,6 @@ class MessageServerServicer(object):
 
 def add_MessageServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Register': grpc.unary_unary_rpc_method_handler(
-                    servicer.Register,
-                    request_deserializer=service__pb2.RegisterRequest.FromString,
-                    response_serializer=service__pb2.RegisterResponse.SerializeToString,
-            ),
-            'Login': grpc.unary_unary_rpc_method_handler(
-                    servicer.Login,
-                    request_deserializer=service__pb2.LoginRequest.FromString,
-                    response_serializer=service__pb2.LoginResponse.SerializeToString,
-            ),
             'GetUsers': grpc.unary_stream_rpc_method_handler(
                     servicer.GetUsers,
                     request_deserializer=service__pb2.GetUsersRequest.FromString,
@@ -156,21 +88,6 @@ def add_MessageServerServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.MonitorMessagesRequest.FromString,
                     response_serializer=service__pb2.Message.SerializeToString,
             ),
-            'DeleteAccount': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteAccount,
-                    request_deserializer=service__pb2.DeleteAccountRequest.FromString,
-                    response_serializer=service__pb2.DeleteAccountResponse.SerializeToString,
-            ),
-            'SaveSettings': grpc.unary_unary_rpc_method_handler(
-                    servicer.SaveSettings,
-                    request_deserializer=service__pb2.SaveSettingsRequest.FromString,
-                    response_serializer=service__pb2.SaveSettingsResponse.SerializeToString,
-            ),
-            'GetSettings': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSettings,
-                    request_deserializer=service__pb2.GetSettingsRequest.FromString,
-                    response_serializer=service__pb2.GetSettingsResponse.SerializeToString,
-            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'message_server.MessageServer', rpc_method_handlers)
@@ -181,40 +98,6 @@ def add_MessageServerServicer_to_server(servicer, server):
 class MessageServer(object):
     """The service definition.
     """
-
-    @staticmethod
-    def Register(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/message_server.MessageServer/Register',
-            service__pb2.RegisterRequest.SerializeToString,
-            service__pb2.RegisterResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def Login(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/message_server.MessageServer/Login',
-            service__pb2.LoginRequest.SerializeToString,
-            service__pb2.LoginResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetUsers(request,
@@ -281,56 +164,5 @@ class MessageServer(object):
         return grpc.experimental.unary_stream(request, target, '/message_server.MessageServer/MonitorMessages',
             service__pb2.MonitorMessagesRequest.SerializeToString,
             service__pb2.Message.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def DeleteAccount(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/message_server.MessageServer/DeleteAccount',
-            service__pb2.DeleteAccountRequest.SerializeToString,
-            service__pb2.DeleteAccountResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SaveSettings(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/message_server.MessageServer/SaveSettings',
-            service__pb2.SaveSettingsRequest.SerializeToString,
-            service__pb2.SaveSettingsResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def GetSettings(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/message_server.MessageServer/GetSettings',
-            service__pb2.GetSettingsRequest.SerializeToString,
-            service__pb2.GetSettingsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

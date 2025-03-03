@@ -41,90 +41,7 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
         self.message_queue = defaultdict(list)
     
     # MARK: User Authentication
-    def Register(self, request : service_pb2.RegisterRequest, context) -> service_pb2.RegisterResponse:
-        """
-        Registers a new user via an RPC request.
-
-        Parameters:
-            request (RegisterRequest): Contains the user's registration details.
-                - username (str): The desired username.
-                - password (str): The chosen password.
-                - email (str): The user's email address.
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Returns:
-            RegisterResponse: A response containing the registration status and message.
-                - status (RegisterStatus): SUCCESS or FAILURE.
-                - message (str): A message indicating the result of the registration.
-
-        Behavior with Exceptions:
-            If an error occurs during registration, a failure response is returned to the client, in the same
-            style as the failure of a registration. It will contain the error message instead.
-        """
-        try:
-            logger.info(f"Handling register request from {request.username}")
-            status, message = AuthHandler.register_user(request.username, request.password, request.email)
-            
-            if status:
-                logger.info(f"Successfully registered username {request.username}")
-                status_message = service_pb2.RegisterResponse.RegisterStatus.SUCCESS
-                return service_pb2.RegisterResponse(
-                    status=status_message, 
-                    message=message)
-            else:
-                logger.warning(f"Registration failed for username {request.username} with message: {message}")
-                return service_pb2.RegisterResponse(
-                    status=status, 
-                    message=message)
-        
-        except Exception as e:
-            logger.error(f"Failed to register user {request.username} with error: {e}")
-            status = service_pb2.RegisterResponse.RegisterStatus.FAILURE
-            return service_pb2.RegisterResponse(
-                status=status, 
-                message="User registration failed.")
-
-    def Login(self, request: service_pb2.LoginRequest, context) -> service_pb2.LoginResponse:
-        """
-        Authenticates a user via an RPC login request.
-
-        Parameters:
-            request (LoginRequest): Contains the user's login information.
-                - username (str): The username of the user attempting to log in.
-                - password (str): The password provided by the user.
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Returns:
-            LoginResponse: A response containing the login status and message.
-                - status (LoginStatus): SUCCESS or FAILURE.
-                - message (str): A message indicating the result of the login attempt.
-
-        Behavior with Exceptions:
-            If an error occurs during login, a failure response is returned to the client with the specific error message.
-        """
-        try:
-            logger.info(f"Handling login request from {request.username}")
-            response, message = AuthHandler.authenticate_user(request.username, request.password)
-            
-            if response:
-                logger.info(f"Successfully logged in user with username {request.username}")
-                status_message = service_pb2.LoginResponse.LoginStatus.SUCCESS
-                return service_pb2.LoginResponse(
-                    status=status_message, 
-                    message=message)
-            else:
-                logger.warning(f"Login failed for username {request.username} with message: {message}")
-                status = service_pb2.LoginResponse.LoginStatus.FAILURE
-                return service_pb2.LoginResponse(
-                    status=status, 
-                    message=message)
-        
-        except Exception as e:
-            logger.error(f"Failed to login user {request.username} with error: {e}")
-            status_message = service_pb2.LoginResponse.LoginStatus.FAILURE
-            return service_pb2.LoginResponse(
-                status=status_message, 
-                message="User login failed.")
+    
 
     # MARK: Set-Up Services
     def GetUsers(self, request : service_pb2.GetUsersRequest, context) -> service_pb2.GetUsersResponse:
@@ -183,9 +100,7 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             logger.info(f"Messages pending for {request.username}: {self.pending_messages[request.username]}")
 
             # Only send the number of messages that the user desires.
-            counter = 0
-            while self.pending_messages[request.username] and counter < request.inbox_limit:
-                counter += 1
+            while self.pending_messages[request.username]:
                 pending_message = self.pending_messages[request.username].pop(0)
                 yield service_pb2.PendingMessageResponse(
                     status=service_pb2.PendingMessageResponse.PendingMessageStatus.SUCCESS,
@@ -303,98 +218,6 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
             # When the client's stream closes, remove them from the active clients.
             logger.info(f"Client disconnected with username: {request.username}")
             self.active_clients.pop(request.username)
-
-    # MARK: Account Settings
-    def DeleteAccount(self, request : service_pb2.DeleteAccountRequest, context) -> service_pb2.DeleteAccountResponse:
-        """
-        Handles the deletion of an account via an RPC request from the client.
-
-        Parameters:
-            request (DeleteAccountRequest): Contains the request details for deleting the account.
-                - username (str): The username of the account to be deleted.
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Returns:
-            DeleteAccountResponse: Returns the status (DeleteAccountStatus) of SUCCESS or FAILURE.
-        """
-        try:
-            logger.info(f"Handling request to delete account with username {request.username}.")
-            status = DatabaseManager.delete_account(request.username)
-            if status:
-                logger.info(f"Account successfully deleted for user {request.username}.")
-                return service_pb2.DeleteAccountResponse(
-                    status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.SUCCESS
-                )
-            else:
-                logger.warning(f"Could not delete account for user {request.username}")
-                return service_pb2.DeleteAccountResponse(
-                    status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.FAILURE
-                )
-        except Exception as e:
-            logger.error(f"Failed to delete account for user {request.username} with error {e}")
-            return service_pb2.DeleteAccountResponse(
-                status=service_pb2.DeleteAccountResponse.DeleteAccountStatus.FAILURE
-            )
-    
-    def SaveSettings(self, request : service_pb2.SaveSettingsRequest, context) -> service_pb2.SaveSettingsResponse:
-        """
-        Handles a RPC request from the client to update their limit on the number of messages to receive at a time.
-
-        Parameters:
-            request (SaveSettingsRequest): Contains the client info for setting updates.
-                - username (str): The username of the account to be updated.
-                - setting (int32): The number of pending messages the client wants to receive at a given time.
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Returns:
-            SaveSettingsResponse: Returns the status (SaveSettingsStatus) of SUCCESS or FAILURE of saving the new limit.
-        """
-        try:
-            logger.info(f"Handling save setting request from {request.username} to update setting to {request.setting}.")
-            status = DatabaseManager.save_settings(request.username, request.setting)
-            if status:
-                logger.info(f"Successfully updated user settings for user {request.username}.")
-                return service_pb2.SaveSettingsResponse(
-                    status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.SUCCESS
-                )
-            else:
-                logger.warning(f"Unable to save setting for user {request.username}.")
-                return service_pb2.SaveSettingsResponse(
-                    status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.FAILURE
-                )
-        except Exception as e:
-            logger.error(f"Failed with error to save setting for user {request.username} with error: {e}")
-            return service_pb2.SaveSettingsResponse(
-                status=service_pb2.SaveSettingsResponse.SaveSettingsStatus.FAILURE
-            )
-
-    def GetSettings(self, request : service_pb2.GetSettingsRequest, context) -> service_pb2.GetSettingsResponse:
-        """
-        Handles a RPC request from the client to retrieve their limit on the number of messages to receive at a time.
-
-        Parameters:
-            request (GetSettingsRequest): Contains the client info for finding their settings.
-                - username (str): The username of the client.
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Returns:
-            GetSettingsResponse: 
-                - status (GetSettingsStatus): SUCCESS or FAILURE of retrieving the limit.
-                - setting (int32): the limit of notifications to receive at one time.
-        """
-        try: 
-            logger.info(f"Retrieving settings for user {request.username}.")
-            settings = DatabaseManager.get_settings(request.username)
-            return service_pb2.GetSettingsResponse(
-                status=service_pb2.GetSettingsResponse.GetSettingsStatus.SUCCESS,
-                setting=settings
-            )
-        except Exception as e:
-            logger.error(f"Failed with error to retrieve settings for user {request.username} with error: {e}")
-            return service_pb2.GetSettingsResponse(
-                status=service_pb2.GetSettingsResponse.GetSettingsStatus.FAILURE,
-                setting=0
-            )
     
 
 # MARK: Server Initialization
@@ -448,3 +271,5 @@ if __name__ == "__main__":
     port = args.port
     # Start our server
     serve(ip, port)
+
+    #  python3 main.py --ip 127.0.0.1
