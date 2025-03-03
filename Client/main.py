@@ -31,7 +31,8 @@ class Client:
         self.channel = grpc.insecure_channel(f'{host}:{port}')
         self.stub = service_pb2_grpc.MessageServerStub(self.channel)
         self.current_user = str(id)
-        self.other_vms = ["1", "2", "3"].remove(self.current_user)
+        self.other_vms = ["1", "2", "3"]
+        self.other_vms.remove(self.current_user)
 
         # (1) create network queue
         self.messageObservation = threading.Thread(target=self._monitor_messages, daemon=True)
@@ -66,7 +67,7 @@ class Client:
             if self.message_q:
                 print("detected a message")
                 message = self.message_q.pop(0)
-                self.logger.info(f"Received Message: {message}, Global Time: {time.time()}, Length of new message queue: {len(self.message_q)}, Logical clock time: {self.logical_clock}")
+                self.logger.info(f"Received Message: {message.message.message}, Global Time: {time.time()}, Length of new message queue: {len(self.message_q)}, Logical clock time: {self.logical_clock}")
                 
             # If no messages in queue, probabilistically take another action.
             else:
@@ -89,12 +90,12 @@ class Client:
                     case _:
                         self.logger.info(f"Internal Update. Global Time: {time.time()}, Logical clock time: {self.logical_clock}")
 
-            time.sleep(self.sleep_time + 10)
+            time.sleep(self.sleep_time)
 
     def _handle_send_message(self, recipient, message):
         """Sends the server a message request and handles potential failures to deliver the message."""
         try: 
-            self.logger.info(f"Sending message request to {recipient} with message: {message}")
+            print(f"Sending message request to {recipient} with message: {message}")
             message_request = service_pb2.Message(
                 sender=self.current_user,
                 recipient=recipient,
@@ -104,7 +105,7 @@ class Client:
             response = self.stub.SendMessage(message_request)
 
             if response.status == service_pb2.MessageResponse.MessageStatus.SUCCESS:
-                self.logger.info(f"Message sent to {recipient} successfully")
+                print(f"Message sent to {recipient} successfully")
             else:
                 self.logger.error(f"Message failed to send to {recipient}")
 
@@ -119,7 +120,7 @@ class Client:
         the stream iterator provided as a response to the RPC call.
         """
         try:
-            self.logger.info(f"Starting message monitoring...")
+            print(f"Starting message monitoring...")
             message_iterator = self.stub.MonitorMessages(service_pb2.MonitorMessagesRequest(username=self.current_user))
             while True:
                 for message in message_iterator:
@@ -136,14 +137,14 @@ class Client:
         to update the user's inbox. It handles these responses in the form of a stream of Messages.
         """
         try:
-            self.logger.info("Send request to get pending messages and update inbox.")    
+            print("Send request to get pending messages and update inbox.")    
             responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user))
             for response in responses:
                 self.message_q.append(response)
-            self.logger.info(f"Retrieved pending messages: {self.message_q}")
+            print(f"Retrieved pending messages: {self.message_q}")
         
         except Exception as e:
-            self.logger.error(f"Failed in handle get inbox with error: {e}")
+            print(f"Failed in handle get inbox with error: {e}")
             sys.exit(1)
     
     
