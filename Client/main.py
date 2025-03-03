@@ -40,7 +40,8 @@ class Client:
         # (2) create virtual log
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+            format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s',
+            filename=f"./logs/logfile_vm{self.current_user}"
         )
         self.logger = logging.getLogger(__name__)
 
