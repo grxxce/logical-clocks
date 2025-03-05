@@ -52,6 +52,10 @@ def run_simulation(ip, port, duration, runs):
 def handle_logfiles(run_number):
     # Define the source and destination directories
     source_dir = './logs'
+    if not os.path.exists(source_dir):
+        os.makedirs(source_dir)
+        print(f"Created logs directory: {source_dir}")
+    
     
     destination_dir = f'./results/simulation_{run_number}'
 
@@ -127,3 +131,5 @@ if __name__ == "__main__":
     duration = args.duration
     runs = args.runs
     run_simulation(ip, port, duration, runs)
+
+# python simulations.py --ip 127.0.0.1 --duration 90

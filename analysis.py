@@ -278,3 +278,5 @@ if __name__ == "__main__":
         analyze_diff_systime_logtime(p1_df, p2_df, p3_df, result_dirpath)
         analyze_gaps(p1_df, p2_df, p3_df, result_dirpath)
         analyze_message_queues(p1_df, p2_df, p3_df, result_dirpath)
+
+# python analysis.py
