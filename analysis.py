@@ -133,17 +133,24 @@ def analyze_logical_clock(p1_df, p2_df, p3_df, result_dirpath):
 
 def analyze_diff_systime_logtime(p1_df, p2_df, p3_df, result_dirpath):
     """
-    Find the drift between the logical clock time and the system time. 
-    We can do this by taking the difference of each process and their respective timings, and we should
-    ideally see a constant line (the difference between them should be relatively identical). However,
-    if we see a slope, then this indicates that the clock is drifting.
+    Find the differences between the logical clock time and the real system time. 
+
+    Parameters:
+        p1_df (DataFrame): the data frame for process 1's information
+        p2_df (DataFrame): the data frame for process 2's information
+        p3_df (DataFrame): the data frame for process 3's information
+        result_dirpath (str): The directory path that the result should be placed into.
+
+    Outcome:
+        Creates a PNG plot using the data provided that is saved into the directory path
+        inputted as a parameter.
     """
     # Dividing by 1e9 converts our system time into seconds and avoids overflow.
     p1_df['drift'] = p1_df['logical_clock'] - p1_df['global_time'] / 1e9
     p2_df['drift'] = p2_df['logical_clock'] - p2_df['global_time'] / 1e9
     p3_df['drift'] = p3_df['logical_clock'] - p3_df['global_time'] / 1e9    
 
-    # Plot the drifts for all machines with different colors
+    # Plot the differences for all machines with different colors
     plt.figure(figsize=(10, 6))
     plt.plot(p1_df['global_time'], p1_df['drift'], label='Process 1', markersize=5, color='b', linestyle=' ', marker='o')
     plt.plot(p2_df['global_time'], p2_df['drift'], label='Process 2', markersize=5, color='g', linestyle=' ', marker='o')
@@ -151,39 +158,53 @@ def analyze_diff_systime_logtime(p1_df, p2_df, p3_df, result_dirpath):
 
     # Customize the plot
     plt.xlabel('Global Time')
-    plt.ylabel('Drift (Logical Clock - System Time)')
-    plt.title('Drift between Global Time and Logical Clocks')
+    plt.ylabel('Drift (Logical Clock - Global Time)')
+    plt.title('Difference between Global Time and Logical Clocks')
     plt.xticks(rotation=45)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
 
     # Save figure into the given directory path
-    result_path = f"{result_dirpath}/drift_plot"
+    result_path = f"{result_dirpath}/timing_difference_plot"
     plt.savefig(result_path)
 
 
 def analyze_gaps(p1_df, p2_df, p3_df, result_dirpath):
-    """Analyze the gaps between a process's logical clock and the local clock times that it receives from other processes."""
+    """
+    Analyze the gaps between a process's logical clock and the local clock times that it receives from other processes.
+    If the process receives messages from both processes with updates, it will show as having two distinct lines.
+    However, if a process only appears with one clear line, it may be possible that the other process is not able to 
+    communicate state updates. For example, if a process is overwhelmed with messages in its queue, it is unable
+    to send updates to this process about its logical clock drifts.
 
-    # What is a gap? If I am Process #1 on my 100th logical clock tick, and I receive a message from Process #2 which is on its 120th clock tick,
-    # that is a 20 point gap. We want to plot these gaps to see if any patterns may exist.
-    # We only get these data points when we receive a message.
+    Quick note:
+        What is a gap? 
+        If I am Process #1 on my 100th logical clock tick, and I receive a message from Process #2 which is on its 120th clock tick,
+        that is a 20 point gap. We want to plot these gaps to see if any patterns may exist.
+        We only get these data points when we receive a message.
+    Parameters:
+        p1_df (DataFrame): the data frame for process 1's information
+        p2_df (DataFrame): the data frame for process 2's information
+        p3_df (DataFrame): the data frame for process 3's information
+        result_dirpath (str): The directory path that the result should be placed into.
 
-    # Filter out rows where 'local_clock' is None (or NaN)
+    Outcome:
+        Creates a PNG plot using the data provided that is saved into the directory path
+        inputted as a parameter.
+    """
+
+    # Filter out rows where 'local_clock' is None
     p1_df_filtered = p1_df[p1_df['local_clock'].notna()]
     p1_df_filtered.loc[:, 'gap'] = p1_df_filtered['logical_clock'] - p1_df_filtered['local_clock']
-    # p1_df_filtered['gap'] = p1_df_filtered['logical_clock'] - p1_df_filtered['local_clock']
 
     p2_df_filtered = p2_df[p2_df['local_clock'].notna()]
     p2_df_filtered.loc[:, 'gap'] = p2_df_filtered['logical_clock'] - p2_df_filtered['local_clock']
-    # p2_df_filtered['gap'] = p2_df_filtered['logical_clock'] - p2_df_filtered['local_clock']
 
     p3_df_filtered = p3_df[p3_df['local_clock'].notna()]
     p3_df_filtered.loc[:, 'gap'] = p3_df_filtered['logical_clock'] - p3_df_filtered['local_clock']
-    # p3_df_filtered['gap'] = p3_df_filtered['logical_clock'] - p3_df_filtered['local_clock']
 
-    # Plot the drifts for all machines with different colors
+    # Plot the gaps for each process with other processes in different colors.
     plt.figure(figsize=(10, 6))
     plt.plot(p1_df_filtered['global_time'], p1_df_filtered['gap'], label='Process 1', markersize=5, color='b', linestyle=' ', marker='o')
     plt.plot(p2_df_filtered['global_time'], p2_df_filtered['gap'], label='Process 2', markersize=5, color='g', linestyle=' ', marker='o')
@@ -204,7 +225,19 @@ def analyze_gaps(p1_df, p2_df, p3_df, result_dirpath):
 
 
 def analyze_message_queues(p1_df, p2_df, p3_df, result_dirpath):
-    """Analyze the messages queues of each process"""
+    """
+    Analyze the messages queues of each process to plot the number of messages that are pending.
+    
+    Parameters:
+        p1_df (DataFrame): the data frame for process 1's information
+        p2_df (DataFrame): the data frame for process 2's information
+        p3_df (DataFrame): the data frame for process 3's information
+        result_dirpath (str): The directory path that the result should be placed into.
+
+    Outcome:
+        Creates a PNG plot using the data provided that is saved into the directory path
+        inputted as a parameter.
+    """
     
     # Filter out rows where 'message_queue' is None (or NaN)
     p1_df_filtered = p1_df[p1_df['message_queue'].notna()]
@@ -279,4 +312,5 @@ if __name__ == "__main__":
         analyze_gaps(p1_df, p2_df, p3_df, result_dirpath)
         analyze_message_queues(p1_df, p2_df, p3_df, result_dirpath)
 
+# Example Usage:
 # python analysis.py

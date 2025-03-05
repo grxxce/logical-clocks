@@ -9,6 +9,25 @@ import shutil
 # MARK: Run Simulation
 
 def run_simulation(ip, port, duration, runs):
+    """
+    Begin the simulation by creating 3 separate processes that run on the server.
+    Handle starting the processes at the same time, allow them to run for a set duration,
+    then shut down each process.
+
+    Repeat these steps for the appropriate number of runs, moving the data such as log files
+    into the result folder as they become available.
+    
+    Parameters:
+        ip: the ip address that the server and clients should use
+        port: the port that the server and clients should use
+        duration (int): the time that each run of the simulation should take in seconds
+        runs (int): the number of times the simulation should be run
+
+    Outcome:
+        In the results/ folder, each simulation should have its own unique log files from each process.
+        These log files can be analyzed visually and in combination with our analysis file.
+    """
+
     # List of commands to run the different processes
     commands = [
         f'python Client/main.py --ip {ip} --port {port} --id 1',
@@ -42,24 +61,36 @@ def run_simulation(ip, port, duration, runs):
 
         # Move the log files to organize results
         handle_logfiles(run_number)
-        # Give a break in between the next run
+
+        # Give a break in between the next run (for debugging purposes)
         print(f'Completed run number: {run_number}')
         time.sleep(3)
 
-    # Kill the server
+    # Kill the server to end the simulations.
     server_cmd.send_signal(signal.SIGINT)
 
+
 def handle_logfiles(run_number):
+    """
+    Upon completion of a simulation, move the resulting log data from the temporary folder /logs/ into the results folder,
+    symbolizing that the logging of the processes is complete and allowing for the next iteration of simulation to begin.
+    
+    Parameters:
+        run_number (int): the number of times the simulation should be run
+
+    Outcome:
+        Moves the log data from ./logs into ./results
+    """
+
     # Define the source and destination directories
     source_dir = './logs'
     if not os.path.exists(source_dir):
         os.makedirs(source_dir)
         print(f"Created logs directory: {source_dir}")
-    
-    
+
     destination_dir = f'./results/simulation_{run_number}'
 
-    # Ensure the destination directory exists, create it if not
+    # Make sure the destination directory exists, create it if not
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
 
@@ -76,8 +107,8 @@ def handle_logfiles(run_number):
             shutil.move(file_path, destination_path)
             print(f"Moved and renamed {filename} to {new_filename}")
 
-# MARK: Command-line arguments.
 
+# MARK: Command-line arguments.
 # Validate an IP address
 def validate_ip(value):
     try:
@@ -132,4 +163,5 @@ if __name__ == "__main__":
     runs = args.runs
     run_simulation(ip, port, duration, runs)
 
-# python simulations.py --ip 127.0.0.1 --duration 90
+# Example Usage:
+# python simulations.py --ip 127.0.0.1 --port 5001 --duration 90 --runs 5
