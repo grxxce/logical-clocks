@@ -11,8 +11,6 @@ from concurrent import futures
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from proto import service_pb2
 from proto import service_pb2_grpc
-from auth_handler import AuthHandler
-from database import DatabaseManager
 
 
 # MARK: Initialize Logger
@@ -39,43 +37,6 @@ class MessageServer(service_pb2_grpc.MessageServerServicer):
         self.active_clients = {}
         self.pending_messages = defaultdict(list)
         self.message_queue = defaultdict(list)
-    
-    # MARK: User Authentication
-    
-
-    # MARK: Set-Up Services
-    def GetUsers(self, request : service_pb2.GetUsersRequest, context) -> service_pb2.GetUsersResponse:
-        """
-        Retrieves a stream of users from the database who can be messaged via an RPC request.
-
-        Parameters:
-            request (GetUsersRequest): Contains the request details.
-                - username (str): The username making the request (for logging purposes).
-            context (RPCContext): The RPC call context, containing information about the client.
-
-        Yields (streams):
-            GetUsersResponse: A stream of responses containing the usernames.
-                - status (GetUsersStatus): SUCCESS or FAILURE.
-                - username (str): The username retrieved from the database.
-
-        Behavior with Exceptions:
-            If an error occurs during the process of retrieving users, a failure response is sent with an empty username.
-        """
-        try:
-            logger.info(f"Handling get_users request from {request.username}")
-            users = DatabaseManager.get_contacts()
-            logger.info(f"Retrieved users from database to send to client via a stream: {users}")
-            for user in users:
-                yield service_pb2.GetUsersResponse(
-                    status=service_pb2.GetUsersResponse.GetUsersStatus.SUCCESS,
-                    username=user
-                )
-        except Exception as e:
-            logger.error(f"Failed to retrieve stream of users from database with error: {e}")
-            yield service_pb2.GetUsersResponse(
-                status=service_pb2.GetUsersResponse.GetUsersStatus.FAILURE,
-                username=""
-            )
 
     def GetPendingMessage(self, request : service_pb2.PendingMessageRequest, context) -> service_pb2.PendingMessageResponse:
         """
@@ -272,4 +233,5 @@ if __name__ == "__main__":
     # Start our server
     serve(ip, port)
 
-    #  python3 main.py --ip 127.0.0.1
+# Example usage:
+#       python3 main.py --ip 127.0.0.1 --port 51
