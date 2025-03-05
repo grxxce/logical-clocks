@@ -12,6 +12,7 @@ from proto import service_pb2
 from proto import service_pb2_grpc
 import random
 import time
+import re
 
 
 # MARK: Client Class
@@ -61,17 +62,25 @@ class Client:
         print("running clock now")
         while self.running:
             self._handle_get_inbox()
-            self.logical_clock += 1
+            
 
             # If there are messages in the queue: 
             if self.message_q:
                 print("detected a message")
                 message = self.message_q.pop(0)
+                match = re.search(r"local clock time is (?P<local_clock>\d+)", message.message.message)
+                if match:
+                    local_clock_time = match.group('local_clock')
+                    self.logical_clock = max(self.logical_clock, int(local_clock_time)) + 1
+                else:
+                    #todo: fix
+                    print("ERROR FIX THIS LOL")
                 self.logger.info(f"Received Message: {message.message.message}, Global Time: {time.time()}, Length of new message queue: {len(self.message_q)}, Logical clock time: {self.logical_clock}")
                 
             # If no messages in queue, probabilistically take another action.
             else:
                 print("Did not detect message. Creating an event.")
+                self.logical_clock += 1
                 event = random.randint(1, 10)
                 match event:
                     case 1:

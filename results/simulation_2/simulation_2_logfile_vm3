@@ -1,235 +1,89 @@
-2025-03-05 14:02:01,422 - INFO - run_clock_cycle - Sent Message: the local clock time is 2 to machine 2, Global Time: 1741201321.422827, Logical clock time: 2
-2025-03-05 14:02:01,678 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201321.678508, Logical clock time: 3
-2025-03-05 14:02:01,935 - INFO - run_clock_cycle - Received Message: the local clock time is 3, Global Time: 1741201321.935328, Length of new message queue: 0, Logical clock time: 4
-2025-03-05 14:02:02,191 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201322.191859, Logical clock time: 5
-2025-03-05 14:02:02,455 - INFO - run_clock_cycle - Sent Message: the local clock time is 6 to machine 1, Global Time: 1741201322.455841, Logical clock time: 6
-2025-03-05 14:02:02,711 - INFO - run_clock_cycle - Received Message: the local clock time is 9, Global Time: 1741201322.71195, Length of new message queue: 0, Logical clock time: 7
-2025-03-05 14:02:02,963 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201322.96341, Logical clock time: 8
-2025-03-05 14:02:03,221 - INFO - run_clock_cycle - Received Message: the local clock time is 12, Global Time: 1741201323.220992, Length of new message queue: 0, Logical clock time: 9
-2025-03-05 14:02:03,478 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201323.478101, Logical clock time: 10
-2025-03-05 14:02:03,733 - INFO - run_clock_cycle - Sent Message: the local clock time is 11 to machine 2, Global Time: 1741201323.7338262, Logical clock time: 11
-2025-03-05 14:02:03,992 - INFO - run_clock_cycle - Received Message: the local clock time is 12, Global Time: 1741201323.992449, Length of new message queue: 0, Logical clock time: 12
-2025-03-05 14:02:04,249 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201324.249175, Logical clock time: 13
-2025-03-05 14:02:04,505 - INFO - run_clock_cycle - Sent Message: the local clock time is 14 to machine 1, Global Time: 1741201324.505551, Logical clock time: 14
-2025-03-05 14:02:04,759 - INFO - run_clock_cycle - Sent Message: the local clock time is 15 to machine 1 and 2, Global Time: 1741201324.759758, Logical clock time: 15
-2025-03-05 14:02:05,011 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201325.0113962, Logical clock time: 16
-2025-03-05 14:02:05,264 - INFO - run_clock_cycle - Sent Message: the local clock time is 17 to machine 1, Global Time: 1741201325.264152, Logical clock time: 17
-2025-03-05 14:02:05,516 - INFO - run_clock_cycle - Sent Message: the local clock time is 18 to machine 1 and 2, Global Time: 1741201325.516462, Logical clock time: 18
-2025-03-05 14:02:05,772 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201325.772591, Logical clock time: 19
-2025-03-05 14:02:06,026 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201326.026279, Logical clock time: 20
-2025-03-05 14:02:06,278 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201326.278835, Logical clock time: 21
-2025-03-05 14:02:06,534 - INFO - run_clock_cycle - Received Message: the local clock time is 31, Global Time: 1741201326.5347378, Length of new message queue: 0, Logical clock time: 22
-2025-03-05 14:02:06,790 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201326.790667, Logical clock time: 23
-2025-03-05 14:02:07,044 - INFO - run_clock_cycle - Sent Message: the local clock time is 24 to machine 2, Global Time: 1741201327.044367, Logical clock time: 24
-2025-03-05 14:02:07,296 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201327.296105, Logical clock time: 25
-2025-03-05 14:02:07,550 - INFO - run_clock_cycle - Sent Message: the local clock time is 26 to machine 1, Global Time: 1741201327.550175, Logical clock time: 26
-2025-03-05 14:02:07,807 - INFO - run_clock_cycle - Received Message: the local clock time is 38, Global Time: 1741201327.807168, Length of new message queue: 0, Logical clock time: 27
-2025-03-05 14:02:08,065 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201328.065932, Logical clock time: 28
-2025-03-05 14:02:08,321 - INFO - run_clock_cycle - Received Message: the local clock time is 42, Global Time: 1741201328.32195, Length of new message queue: 0, Logical clock time: 29
-2025-03-05 14:02:08,573 - INFO - run_clock_cycle - Received Message: the local clock time is 43, Global Time: 1741201328.57316, Length of new message queue: 0, Logical clock time: 30
-2025-03-05 14:02:08,826 - INFO - run_clock_cycle - Received Message: the local clock time is 30, Global Time: 1741201328.826323, Length of new message queue: 0, Logical clock time: 31
-2025-03-05 14:02:09,083 - INFO - run_clock_cycle - Received Message: the local clock time is 45, Global Time: 1741201329.082992, Length of new message queue: 0, Logical clock time: 32
-2025-03-05 14:02:09,340 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201329.340422, Logical clock time: 33
-2025-03-05 14:02:09,596 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201329.5968199, Logical clock time: 34
-2025-03-05 14:02:09,850 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201329.850296, Logical clock time: 35
-2025-03-05 14:02:10,133 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201330.1337972, Logical clock time: 36
-2025-03-05 14:02:10,393 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201330.393058, Logical clock time: 37
-2025-03-05 14:02:10,647 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201330.6478138, Logical clock time: 38
-2025-03-05 14:02:10,901 - INFO - run_clock_cycle - Received Message: the local clock time is 38, Global Time: 1741201330.901324, Length of new message queue: 0, Logical clock time: 39
-2025-03-05 14:02:11,153 - INFO - run_clock_cycle - Received Message: the local clock time is 39, Global Time: 1741201331.1535108, Length of new message queue: 0, Logical clock time: 40
-2025-03-05 14:02:11,407 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201331.407306, Logical clock time: 41
-2025-03-05 14:02:11,667 - INFO - run_clock_cycle - Received Message: the local clock time is 41, Global Time: 1741201331.6679108, Length of new message queue: 0, Logical clock time: 42
-2025-03-05 14:02:11,925 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201331.925011, Logical clock time: 43
-2025-03-05 14:02:12,188 - INFO - run_clock_cycle - Received Message: the local clock time is 64, Global Time: 1741201332.188482, Length of new message queue: 0, Logical clock time: 44
-2025-03-05 14:02:12,443 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201332.443691, Logical clock time: 45
-2025-03-05 14:02:12,701 - INFO - run_clock_cycle - Received Message: the local clock time is 67, Global Time: 1741201332.701514, Length of new message queue: 0, Logical clock time: 46
-2025-03-05 14:02:12,953 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201332.953436, Logical clock time: 47
-2025-03-05 14:02:13,209 - INFO - run_clock_cycle - Received Message: the local clock time is 48, Global Time: 1741201333.209855, Length of new message queue: 0, Logical clock time: 48
-2025-03-05 14:02:13,466 - INFO - run_clock_cycle - Received Message: the local clock time is 71, Global Time: 1741201333.466045, Length of new message queue: 0, Logical clock time: 49
-2025-03-05 14:02:13,722 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201333.7220988, Logical clock time: 50
-2025-03-05 14:02:13,973 - INFO - run_clock_cycle - Received Message: the local clock time is 74, Global Time: 1741201333.9736881, Length of new message queue: 0, Logical clock time: 51
-2025-03-05 14:02:14,225 - INFO - run_clock_cycle - Received Message: the local clock time is 51, Global Time: 1741201334.225495, Length of new message queue: 0, Logical clock time: 52
-2025-03-05 14:02:14,482 - INFO - run_clock_cycle - Received Message: the local clock time is 77, Global Time: 1741201334.482042, Length of new message queue: 0, Logical clock time: 53
-2025-03-05 14:02:14,739 - INFO - run_clock_cycle - Received Message: the local clock time is 53, Global Time: 1741201334.73899, Length of new message queue: 0, Logical clock time: 54
-2025-03-05 14:02:14,998 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201334.9988108, Logical clock time: 55
-2025-03-05 14:02:15,255 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201335.25503, Logical clock time: 56
-2025-03-05 14:02:15,507 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201335.507602, Logical clock time: 57
-2025-03-05 14:02:15,763 - INFO - run_clock_cycle - Received Message: the local clock time is 85, Global Time: 1741201335.7630248, Length of new message queue: 0, Logical clock time: 58
-2025-03-05 14:02:16,017 - INFO - run_clock_cycle - Received Message: the local clock time is 86, Global Time: 1741201336.017066, Length of new message queue: 0, Logical clock time: 59
-2025-03-05 14:02:16,273 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201336.273243, Logical clock time: 60
-2025-03-05 14:02:16,525 - INFO - run_clock_cycle - Received Message: the local clock time is 89, Global Time: 1741201336.525358, Length of new message queue: 0, Logical clock time: 61
-2025-03-05 14:02:16,781 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201336.781523, Logical clock time: 62
-2025-03-05 14:02:17,038 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201337.038837, Logical clock time: 63
-2025-03-05 14:02:17,294 - INFO - run_clock_cycle - Received Message: the local clock time is 93, Global Time: 1741201337.294524, Length of new message queue: 0, Logical clock time: 64
-2025-03-05 14:02:17,547 - INFO - run_clock_cycle - Received Message: the local clock time is 95, Global Time: 1741201337.5470972, Length of new message queue: 0, Logical clock time: 65
-2025-03-05 14:02:17,804 - INFO - run_clock_cycle - Sent Message: the local clock time is 66 to machine 1 and 2, Global Time: 1741201337.804644, Logical clock time: 66
-2025-03-05 14:02:18,068 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201338.0687292, Logical clock time: 67
-2025-03-05 14:02:18,323 - INFO - run_clock_cycle - Received Message: the local clock time is 67, Global Time: 1741201338.3232481, Length of new message queue: 0, Logical clock time: 68
-2025-03-05 14:02:18,577 - INFO - run_clock_cycle - Received Message: the local clock time is 68, Global Time: 1741201338.577236, Length of new message queue: 1, Logical clock time: 69
-2025-03-05 14:02:18,831 - INFO - run_clock_cycle - Received Message: the local clock time is 101, Global Time: 1741201338.831064, Length of new message queue: 1, Logical clock time: 70
-2025-03-05 14:02:19,087 - INFO - run_clock_cycle - Received Message: the local clock time is 102, Global Time: 1741201339.087021, Length of new message queue: 0, Logical clock time: 71
-2025-03-05 14:02:19,339 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201339.339351, Logical clock time: 72
-2025-03-05 14:02:19,590 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201339.590328, Logical clock time: 73
-2025-03-05 14:02:19,848 - INFO - run_clock_cycle - Sent Message: the local clock time is 74 to machine 1, Global Time: 1741201339.8483882, Logical clock time: 74
-2025-03-05 14:02:20,105 - INFO - run_clock_cycle - Sent Message: the local clock time is 75 to machine 2, Global Time: 1741201340.1051269, Logical clock time: 75
-2025-03-05 14:02:20,359 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201340.3596091, Logical clock time: 76
-2025-03-05 14:02:20,612 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201340.612761, Logical clock time: 77
-2025-03-05 14:02:20,867 - INFO - run_clock_cycle - Received Message: the local clock time is 77, Global Time: 1741201340.867591, Length of new message queue: 0, Logical clock time: 78
-2025-03-05 14:02:21,123 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201341.1235042, Logical clock time: 79
-2025-03-05 14:02:21,377 - INFO - run_clock_cycle - Received Message: the local clock time is 79, Global Time: 1741201341.377544, Length of new message queue: 0, Logical clock time: 80
-2025-03-05 14:02:21,635 - INFO - run_clock_cycle - Received Message: the local clock time is 119, Global Time: 1741201341.634997, Length of new message queue: 0, Logical clock time: 81
-2025-03-05 14:02:21,889 - INFO - run_clock_cycle - Sent Message: the local clock time is 82 to machine 1, Global Time: 1741201341.889478, Logical clock time: 82
-2025-03-05 14:02:22,145 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201342.1458461, Logical clock time: 83
-2025-03-05 14:02:22,403 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201342.40324, Logical clock time: 84
-2025-03-05 14:02:22,655 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201342.655506, Logical clock time: 85
-2025-03-05 14:02:22,910 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201342.910444, Logical clock time: 86
-2025-03-05 14:02:23,167 - INFO - run_clock_cycle - Received Message: the local clock time is 127, Global Time: 1741201343.167373, Length of new message queue: 0, Logical clock time: 87
-2025-03-05 14:02:23,420 - INFO - run_clock_cycle - Sent Message: the local clock time is 88 to machine 1 and 2, Global Time: 1741201343.42085, Logical clock time: 88
-2025-03-05 14:02:23,674 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201343.674201, Logical clock time: 89
-2025-03-05 14:02:23,927 - INFO - run_clock_cycle - Sent Message: the local clock time is 90 to machine 1, Global Time: 1741201343.927379, Logical clock time: 90
-2025-03-05 14:02:24,180 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201344.1803782, Logical clock time: 91
-2025-03-05 14:02:24,433 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201344.4337091, Logical clock time: 92
-2025-03-05 14:02:24,689 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201344.689304, Logical clock time: 93
-2025-03-05 14:02:24,940 - INFO - run_clock_cycle - Received Message: the local clock time is 137, Global Time: 1741201344.940704, Length of new message queue: 0, Logical clock time: 94
-2025-03-05 14:02:25,198 - INFO - run_clock_cycle - Sent Message: the local clock time is 95 to machine 1 and 2, Global Time: 1741201345.1981802, Logical clock time: 95
-2025-03-05 14:02:25,453 - INFO - run_clock_cycle - Received Message: the local clock time is 141, Global Time: 1741201345.453302, Length of new message queue: 0, Logical clock time: 96
-2025-03-05 14:02:25,709 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201345.7097092, Logical clock time: 97
-2025-03-05 14:02:25,966 - INFO - run_clock_cycle - Sent Message: the local clock time is 98 to machine 1, Global Time: 1741201345.9665658, Logical clock time: 98
-2025-03-05 14:02:26,221 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201346.221772, Logical clock time: 99
-2025-03-05 14:02:26,478 - INFO - run_clock_cycle - Received Message: the local clock time is 147, Global Time: 1741201346.478088, Length of new message queue: 0, Logical clock time: 100
-2025-03-05 14:02:26,734 - INFO - run_clock_cycle - Sent Message: the local clock time is 101 to machine 1 and 2, Global Time: 1741201346.73442, Logical clock time: 101
-2025-03-05 14:02:26,989 - INFO - run_clock_cycle - Sent Message: the local clock time is 102 to machine 2, Global Time: 1741201346.9893289, Logical clock time: 102
-2025-03-05 14:02:27,247 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201347.2474072, Logical clock time: 103
-2025-03-05 14:02:27,506 - INFO - run_clock_cycle - Sent Message: the local clock time is 104 to machine 1, Global Time: 1741201347.5062568, Logical clock time: 104
-2025-03-05 14:02:27,761 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201347.761112, Logical clock time: 105
-2025-03-05 14:02:28,016 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201348.016971, Logical clock time: 106
-2025-03-05 14:02:28,274 - INFO - run_clock_cycle - Received Message: the local clock time is 107, Global Time: 1741201348.274629, Length of new message queue: 0, Logical clock time: 107
-2025-03-05 14:02:28,526 - INFO - run_clock_cycle - Received Message: the local clock time is 159, Global Time: 1741201348.526865, Length of new message queue: 0, Logical clock time: 108
-2025-03-05 14:02:28,784 - INFO - run_clock_cycle - Received Message: the local clock time is 160, Global Time: 1741201348.784822, Length of new message queue: 0, Logical clock time: 109
-2025-03-05 14:02:29,037 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201349.03756, Logical clock time: 110
-2025-03-05 14:02:29,290 - INFO - run_clock_cycle - Sent Message: the local clock time is 111 to machine 1, Global Time: 1741201349.290498, Logical clock time: 111
-2025-03-05 14:02:29,548 - INFO - run_clock_cycle - Received Message: the local clock time is 165, Global Time: 1741201349.547771, Length of new message queue: 0, Logical clock time: 112
-2025-03-05 14:02:29,803 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201349.8034492, Logical clock time: 113
-2025-03-05 14:02:30,061 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201350.06129, Logical clock time: 114
-2025-03-05 14:02:30,317 - INFO - run_clock_cycle - Sent Message: the local clock time is 115 to machine 1, Global Time: 1741201350.316991, Logical clock time: 115
-2025-03-05 14:02:30,574 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201350.57495, Logical clock time: 116
-2025-03-05 14:02:30,828 - INFO - run_clock_cycle - Received Message: the local clock time is 172, Global Time: 1741201350.828361, Length of new message queue: 0, Logical clock time: 117
-2025-03-05 14:02:31,081 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201351.0817301, Logical clock time: 118
-2025-03-05 14:02:31,337 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201351.337677, Logical clock time: 119
-2025-03-05 14:02:31,593 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201351.593867, Logical clock time: 120
-2025-03-05 14:02:31,851 - INFO - run_clock_cycle - Received Message: the local clock time is 178, Global Time: 1741201351.851627, Length of new message queue: 0, Logical clock time: 121
-2025-03-05 14:02:32,107 - INFO - run_clock_cycle - Received Message: the local clock time is 179, Global Time: 1741201352.107297, Length of new message queue: 0, Logical clock time: 122
-2025-03-05 14:02:32,364 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201352.3641138, Logical clock time: 123
-2025-03-05 14:02:32,620 - INFO - run_clock_cycle - Sent Message: the local clock time is 124 to machine 2, Global Time: 1741201352.6202009, Logical clock time: 124
-2025-03-05 14:02:32,876 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201352.876622, Logical clock time: 125
-2025-03-05 14:02:33,131 - INFO - run_clock_cycle - Sent Message: the local clock time is 126 to machine 1 and 2, Global Time: 1741201353.131871, Logical clock time: 126
-2025-03-05 14:02:33,390 - INFO - run_clock_cycle - Sent Message: the local clock time is 127 to machine 2, Global Time: 1741201353.3901398, Logical clock time: 127
-2025-03-05 14:02:33,645 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201353.645278, Logical clock time: 128
-2025-03-05 14:02:33,900 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201353.900652, Logical clock time: 129
-2025-03-05 14:02:34,156 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201354.1565921, Logical clock time: 130
-2025-03-05 14:02:34,408 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201354.408503, Logical clock time: 131
-2025-03-05 14:02:34,661 - INFO - run_clock_cycle - Received Message: the local clock time is 131, Global Time: 1741201354.661848, Length of new message queue: 0, Logical clock time: 132
-2025-03-05 14:02:34,914 - INFO - run_clock_cycle - Sent Message: the local clock time is 133 to machine 2, Global Time: 1741201354.9146109, Logical clock time: 133
-2025-03-05 14:02:35,171 - INFO - run_clock_cycle - Sent Message: the local clock time is 134 to machine 1, Global Time: 1741201355.171874, Logical clock time: 134
-2025-03-05 14:02:35,427 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201355.427497, Logical clock time: 135
-2025-03-05 14:02:35,683 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201355.683966, Logical clock time: 136
-2025-03-05 14:02:35,938 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201355.938248, Logical clock time: 137
-2025-03-05 14:02:36,194 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201356.1943512, Logical clock time: 138
-2025-03-05 14:02:36,450 - INFO - run_clock_cycle - Sent Message: the local clock time is 139 to machine 1 and 2, Global Time: 1741201356.4503639, Logical clock time: 139
-2025-03-05 14:02:36,706 - INFO - run_clock_cycle - Sent Message: the local clock time is 140 to machine 1 and 2, Global Time: 1741201356.706652, Logical clock time: 140
-2025-03-05 14:02:36,960 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201356.9609358, Logical clock time: 141
-2025-03-05 14:02:37,213 - INFO - run_clock_cycle - Received Message: the local clock time is 209, Global Time: 1741201357.21386, Length of new message queue: 0, Logical clock time: 142
-2025-03-05 14:02:37,466 - INFO - run_clock_cycle - Received Message: the local clock time is 210, Global Time: 1741201357.466513, Length of new message queue: 0, Logical clock time: 143
-2025-03-05 14:02:37,724 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201357.72445, Logical clock time: 144
-2025-03-05 14:02:37,985 - INFO - run_clock_cycle - Sent Message: the local clock time is 145 to machine 1 and 2, Global Time: 1741201357.985483, Logical clock time: 145
-2025-03-05 14:02:38,241 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201358.241782, Logical clock time: 146
-2025-03-05 14:02:38,497 - INFO - run_clock_cycle - Sent Message: the local clock time is 147 to machine 1 and 2, Global Time: 1741201358.4975958, Logical clock time: 147
-2025-03-05 14:02:38,754 - INFO - run_clock_cycle - Sent Message: the local clock time is 148 to machine 1 and 2, Global Time: 1741201358.7542331, Logical clock time: 148
-2025-03-05 14:02:39,010 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201359.010259, Logical clock time: 149
-2025-03-05 14:02:39,268 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201359.267997, Logical clock time: 150
-2025-03-05 14:02:39,535 - INFO - run_clock_cycle - Sent Message: the local clock time is 151 to machine 2, Global Time: 1741201359.535168, Logical clock time: 151
-2025-03-05 14:02:39,792 - INFO - run_clock_cycle - Sent Message: the local clock time is 152 to machine 1 and 2, Global Time: 1741201359.7922401, Logical clock time: 152
-2025-03-05 14:02:40,046 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201360.046706, Logical clock time: 153
-2025-03-05 14:02:40,304 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201360.3044, Logical clock time: 154
-2025-03-05 14:02:40,559 - INFO - run_clock_cycle - Received Message: the local clock time is 155, Global Time: 1741201360.5592341, Length of new message queue: 0, Logical clock time: 155
-2025-03-05 14:02:40,813 - INFO - run_clock_cycle - Received Message: the local clock time is 229, Global Time: 1741201360.81371, Length of new message queue: 0, Logical clock time: 156
-2025-03-05 14:02:41,069 - INFO - run_clock_cycle - Received Message: the local clock time is 231, Global Time: 1741201361.069786, Length of new message queue: 0, Logical clock time: 157
-2025-03-05 14:02:41,325 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201361.325786, Logical clock time: 158
-2025-03-05 14:02:41,581 - INFO - run_clock_cycle - Received Message: the local clock time is 234, Global Time: 1741201361.5817301, Length of new message queue: 0, Logical clock time: 159
-2025-03-05 14:02:41,837 - INFO - run_clock_cycle - Sent Message: the local clock time is 160 to machine 2, Global Time: 1741201361.8378618, Logical clock time: 160
-2025-03-05 14:02:42,094 - INFO - run_clock_cycle - Sent Message: the local clock time is 161 to machine 2, Global Time: 1741201362.094045, Logical clock time: 161
-2025-03-05 14:02:42,350 - INFO - run_clock_cycle - Sent Message: the local clock time is 162 to machine 1 and 2, Global Time: 1741201362.350694, Logical clock time: 162
-2025-03-05 14:02:42,604 - INFO - run_clock_cycle - Sent Message: the local clock time is 163 to machine 2, Global Time: 1741201362.604649, Logical clock time: 163
-2025-03-05 14:02:42,857 - INFO - run_clock_cycle - Received Message: the local clock time is 242, Global Time: 1741201362.8573492, Length of new message queue: 0, Logical clock time: 164
-2025-03-05 14:02:43,119 - INFO - run_clock_cycle - Received Message: the local clock time is 243, Global Time: 1741201363.119395, Length of new message queue: 0, Logical clock time: 165
-2025-03-05 14:02:43,375 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201363.375156, Logical clock time: 166
-2025-03-05 14:02:43,631 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201363.631029, Logical clock time: 167
-2025-03-05 14:02:43,887 - INFO - run_clock_cycle - Received Message: the local clock time is 247, Global Time: 1741201363.887111, Length of new message queue: 0, Logical clock time: 168
-2025-03-05 14:02:44,141 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201364.14127, Logical clock time: 169
-2025-03-05 14:02:44,397 - INFO - run_clock_cycle - Received Message: the local clock time is 250, Global Time: 1741201364.397227, Length of new message queue: 0, Logical clock time: 170
-2025-03-05 14:02:44,654 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201364.65434, Logical clock time: 171
-2025-03-05 14:02:44,905 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201364.905955, Logical clock time: 172
-2025-03-05 14:02:45,157 - INFO - run_clock_cycle - Received Message: the local clock time is 173, Global Time: 1741201365.157909, Length of new message queue: 0, Logical clock time: 173
-2025-03-05 14:02:45,413 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201365.413943, Logical clock time: 174
-2025-03-05 14:02:45,665 - INFO - run_clock_cycle - Received Message: the local clock time is 175, Global Time: 1741201365.665183, Length of new message queue: 0, Logical clock time: 175
-2025-03-05 14:02:45,919 - INFO - run_clock_cycle - Sent Message: the local clock time is 176 to machine 2, Global Time: 1741201365.919371, Logical clock time: 176
-2025-03-05 14:02:46,176 - INFO - run_clock_cycle - Received Message: the local clock time is 261, Global Time: 1741201366.176314, Length of new message queue: 0, Logical clock time: 177
-2025-03-05 14:02:46,429 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201366.429705, Logical clock time: 178
-2025-03-05 14:02:46,682 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201366.6826181, Logical clock time: 179
-2025-03-05 14:02:46,940 - INFO - run_clock_cycle - Received Message: the local clock time is 179, Global Time: 1741201366.940394, Length of new message queue: 0, Logical clock time: 180
-2025-03-05 14:02:47,196 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201367.196207, Logical clock time: 181
-2025-03-05 14:02:47,450 - INFO - run_clock_cycle - Received Message: the local clock time is 268, Global Time: 1741201367.4500291, Length of new message queue: 0, Logical clock time: 182
-2025-03-05 14:02:47,705 - INFO - run_clock_cycle - Received Message: the local clock time is 269, Global Time: 1741201367.7054331, Length of new message queue: 0, Logical clock time: 183
-2025-03-05 14:02:47,957 - INFO - run_clock_cycle - Received Message: the local clock time is 271, Global Time: 1741201367.957768, Length of new message queue: 0, Logical clock time: 184
-2025-03-05 14:02:48,215 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201368.21577, Logical clock time: 185
-2025-03-05 14:02:48,473 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201368.4730601, Logical clock time: 186
-2025-03-05 14:02:48,726 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201368.726054, Logical clock time: 187
-2025-03-05 14:02:48,981 - INFO - run_clock_cycle - Received Message: the local clock time is 277, Global Time: 1741201368.981861, Length of new message queue: 0, Logical clock time: 188
-2025-03-05 14:02:49,238 - INFO - run_clock_cycle - Received Message: the local clock time is 278, Global Time: 1741201369.238358, Length of new message queue: 0, Logical clock time: 189
-2025-03-05 14:02:49,494 - INFO - run_clock_cycle - Sent Message: the local clock time is 190 to machine 1, Global Time: 1741201369.494899, Logical clock time: 190
-2025-03-05 14:02:49,751 - INFO - run_clock_cycle - Received Message: the local clock time is 281, Global Time: 1741201369.7515268, Length of new message queue: 0, Logical clock time: 191
-2025-03-05 14:02:50,008 - INFO - run_clock_cycle - Sent Message: the local clock time is 192 to machine 1 and 2, Global Time: 1741201370.0087721, Logical clock time: 192
-2025-03-05 14:02:50,266 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201370.266665, Logical clock time: 193
-2025-03-05 14:02:50,523 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201370.523584, Logical clock time: 194
-2025-03-05 14:02:50,778 - INFO - run_clock_cycle - Received Message: the local clock time is 287, Global Time: 1741201370.778795, Length of new message queue: 0, Logical clock time: 195
-2025-03-05 14:02:51,035 - INFO - run_clock_cycle - Sent Message: the local clock time is 196 to machine 1, Global Time: 1741201371.035966, Logical clock time: 196
-2025-03-05 14:02:51,295 - INFO - run_clock_cycle - Sent Message: the local clock time is 197 to machine 1 and 2, Global Time: 1741201371.2956429, Logical clock time: 197
-2025-03-05 14:02:51,553 - INFO - run_clock_cycle - Received Message: the local clock time is 292, Global Time: 1741201371.553091, Length of new message queue: 0, Logical clock time: 198
-2025-03-05 14:02:51,806 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201371.806926, Logical clock time: 199
-2025-03-05 14:02:52,064 - INFO - run_clock_cycle - Sent Message: the local clock time is 200 to machine 2, Global Time: 1741201372.064193, Logical clock time: 200
-2025-03-05 14:02:52,321 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201372.321928, Logical clock time: 201
-2025-03-05 14:02:52,576 - INFO - run_clock_cycle - Sent Message: the local clock time is 202 to machine 1, Global Time: 1741201372.576437, Logical clock time: 202
-2025-03-05 14:02:52,832 - INFO - run_clock_cycle - Received Message: the local clock time is 299, Global Time: 1741201372.832839, Length of new message queue: 0, Logical clock time: 203
-2025-03-05 14:02:53,090 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201373.090115, Logical clock time: 204
-2025-03-05 14:02:53,345 - INFO - run_clock_cycle - Received Message: the local clock time is 302, Global Time: 1741201373.345394, Length of new message queue: 0, Logical clock time: 205
-2025-03-05 14:02:53,602 - INFO - run_clock_cycle - Sent Message: the local clock time is 206 to machine 1 and 2, Global Time: 1741201373.602064, Logical clock time: 206
-2025-03-05 14:02:53,858 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201373.8584352, Logical clock time: 207
-2025-03-05 14:02:54,114 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201374.114345, Logical clock time: 208
-2025-03-05 14:02:54,369 - INFO - run_clock_cycle - Received Message: the local clock time is 208, Global Time: 1741201374.3693178, Length of new message queue: 0, Logical clock time: 209
-2025-03-05 14:02:54,623 - INFO - run_clock_cycle - Received Message: the local clock time is 309, Global Time: 1741201374.6233442, Length of new message queue: 0, Logical clock time: 210
-2025-03-05 14:02:54,881 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201374.881181, Logical clock time: 211
-2025-03-05 14:02:55,134 - INFO - run_clock_cycle - Received Message: the local clock time is 312, Global Time: 1741201375.1346262, Length of new message queue: 0, Logical clock time: 212
-2025-03-05 14:02:55,388 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201375.388287, Logical clock time: 213
-2025-03-05 14:02:55,640 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201375.6404538, Logical clock time: 214
-2025-03-05 14:02:55,899 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201375.899434, Logical clock time: 215
-2025-03-05 14:02:56,158 - INFO - run_clock_cycle - Received Message: the local clock time is 318, Global Time: 1741201376.158102, Length of new message queue: 0, Logical clock time: 216
-2025-03-05 14:02:56,414 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201376.414294, Logical clock time: 217
-2025-03-05 14:02:56,670 - INFO - run_clock_cycle - Received Message: the local clock time is 218, Global Time: 1741201376.6705558, Length of new message queue: 0, Logical clock time: 218
-2025-03-05 14:02:56,927 - INFO - run_clock_cycle - Sent Message: the local clock time is 219 to machine 1, Global Time: 1741201376.927965, Logical clock time: 219
-2025-03-05 14:02:57,184 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201377.1841412, Logical clock time: 220
-2025-03-05 14:02:57,440 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201377.4401941, Logical clock time: 221
-2025-03-05 14:02:57,694 - INFO - run_clock_cycle - Received Message: the local clock time is 221, Global Time: 1741201377.6941812, Length of new message queue: 0, Logical clock time: 222
-2025-03-05 14:02:57,949 - INFO - run_clock_cycle - Received Message: the local clock time is 222, Global Time: 1741201377.949297, Length of new message queue: 0, Logical clock time: 223
-2025-03-05 14:02:58,206 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201378.206914, Logical clock time: 224
-2025-03-05 14:02:58,462 - INFO - run_clock_cycle - Received Message: the local clock time is 224, Global Time: 1741201378.4627469, Length of new message queue: 0, Logical clock time: 225
-2025-03-05 14:02:58,716 - INFO - run_clock_cycle - Received Message: the local clock time is 333, Global Time: 1741201378.716578, Length of new message queue: 0, Logical clock time: 226
-2025-03-05 14:02:58,974 - INFO - run_clock_cycle - Received Message: the local clock time is 226, Global Time: 1741201378.9740632, Length of new message queue: 0, Logical clock time: 227
-2025-03-05 14:02:59,232 - INFO - run_clock_cycle - Received Message: the local clock time is 336, Global Time: 1741201379.232625, Length of new message queue: 0, Logical clock time: 228
-2025-03-05 14:02:59,489 - INFO - run_clock_cycle - Received Message: the local clock time is 338, Global Time: 1741201379.489397, Length of new message queue: 0, Logical clock time: 229
-2025-03-05 14:02:59,742 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201379.742211, Logical clock time: 230
-2025-03-05 14:02:59,998 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201379.9986591, Logical clock time: 231
-2025-03-05 14:03:00,255 - INFO - run_clock_cycle - Sent Message: the local clock time is 232 to machine 2, Global Time: 1741201380.255369, Logical clock time: 232
-2025-03-05 14:03:00,507 - INFO - run_clock_cycle - Received Message: the local clock time is 232, Global Time: 1741201380.5072849, Length of new message queue: 0, Logical clock time: 233
-2025-03-05 14:03:00,765 - INFO - run_clock_cycle - Received Message: the local clock time is 233, Global Time: 1741201380.765596, Length of new message queue: 0, Logical clock time: 234
-2025-03-05 14:03:01,022 - INFO - run_clock_cycle - Internal Update. Global Time: 1741201381.0222661, Logical clock time: 235
-2025-03-05 14:03:01,278 - INFO - run_clock_cycle - Received Message: the local clock time is 348, Global Time: 1741201381.27858, Length of new message queue: 0, Logical clock time: 236
+2025-03-05 14:21:58,693 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202518.6936681, Logical clock time: 2
+2025-03-05 14:21:59,701 - INFO - run_clock_cycle - Received Message: the local clock time is 2, Global Time: 1741202519.701395, Length of new message queue: 1, Logical clock time: 3
+2025-03-05 14:22:00,713 - INFO - run_clock_cycle - Received Message: the local clock time is 3, Global Time: 1741202520.713674, Length of new message queue: 0, Logical clock time: 4
+2025-03-05 14:22:01,728 - INFO - run_clock_cycle - Received Message: the local clock time is 9, Global Time: 1741202521.728348, Length of new message queue: 0, Logical clock time: 5
+2025-03-05 14:22:02,738 - INFO - run_clock_cycle - Received Message: the local clock time is 5, Global Time: 1741202522.7387788, Length of new message queue: 1, Logical clock time: 6
+2025-03-05 14:22:03,752 - INFO - run_clock_cycle - Received Message: the local clock time is 11, Global Time: 1741202523.752455, Length of new message queue: 2, Logical clock time: 7
+2025-03-05 14:22:04,761 - INFO - run_clock_cycle - Received Message: the local clock time is 6, Global Time: 1741202524.761733, Length of new message queue: 3, Logical clock time: 8
+2025-03-05 14:22:05,769 - INFO - run_clock_cycle - Received Message: the local clock time is 15, Global Time: 1741202525.7692192, Length of new message queue: 2, Logical clock time: 9
+2025-03-05 14:22:06,780 - INFO - run_clock_cycle - Received Message: the local clock time is 17, Global Time: 1741202526.7800121, Length of new message queue: 1, Logical clock time: 10
+2025-03-05 14:22:07,795 - INFO - run_clock_cycle - Received Message: the local clock time is 18, Global Time: 1741202527.795053, Length of new message queue: 0, Logical clock time: 11
+2025-03-05 14:22:08,808 - INFO - run_clock_cycle - Received Message: the local clock time is 30, Global Time: 1741202528.808065, Length of new message queue: 0, Logical clock time: 12
+2025-03-05 14:22:09,820 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202529.820056, Logical clock time: 13
+2025-03-05 14:22:10,831 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202530.83159, Logical clock time: 14
+2025-03-05 14:22:11,847 - INFO - run_clock_cycle - Sent Message: the local clock time is 15 to machine 1 and 2, Global Time: 1741202531.8478148, Logical clock time: 15
+2025-03-05 14:22:12,856 - INFO - run_clock_cycle - Sent Message: the local clock time is 16 to machine 1 and 2, Global Time: 1741202532.856517, Logical clock time: 16
+2025-03-05 14:22:13,867 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202533.867264, Logical clock time: 17
+2025-03-05 14:22:14,878 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202534.878734, Logical clock time: 18
+2025-03-05 14:22:15,899 - INFO - run_clock_cycle - Sent Message: the local clock time is 19 to machine 1 and 2, Global Time: 1741202535.899498, Logical clock time: 19
+2025-03-05 14:22:16,919 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202536.9195242, Logical clock time: 20
+2025-03-05 14:22:17,938 - INFO - run_clock_cycle - Sent Message: the local clock time is 21 to machine 2, Global Time: 1741202537.9383428, Logical clock time: 21
+2025-03-05 14:22:18,953 - INFO - run_clock_cycle - Received Message: the local clock time is 59, Global Time: 1741202538.9533482, Length of new message queue: 0, Logical clock time: 22
+2025-03-05 14:22:19,980 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202539.980938, Logical clock time: 23
+2025-03-05 14:22:20,993 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202540.993828, Logical clock time: 24
+2025-03-05 14:22:22,001 - INFO - run_clock_cycle - Received Message: the local clock time is 68, Global Time: 1741202542.001359, Length of new message queue: 0, Logical clock time: 25
+2025-03-05 14:22:23,014 - INFO - run_clock_cycle - Received Message: the local clock time is 70, Global Time: 1741202543.0140018, Length of new message queue: 0, Logical clock time: 26
+2025-03-05 14:22:24,036 - INFO - run_clock_cycle - Received Message: the local clock time is 26, Global Time: 1741202544.036876, Length of new message queue: 0, Logical clock time: 27
+2025-03-05 14:22:25,048 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202545.048061, Logical clock time: 28
+2025-03-05 14:22:26,053 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202546.053309, Logical clock time: 29
+2025-03-05 14:22:27,067 - INFO - run_clock_cycle - Received Message: the local clock time is 83, Global Time: 1741202547.067801, Length of new message queue: 0, Logical clock time: 30
+2025-03-05 14:22:28,076 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202548.076245, Logical clock time: 31
+2025-03-05 14:22:29,090 - INFO - run_clock_cycle - Received Message: the local clock time is 87, Global Time: 1741202549.089956, Length of new message queue: 0, Logical clock time: 32
+2025-03-05 14:22:30,103 - INFO - run_clock_cycle - Received Message: the local clock time is 92, Global Time: 1741202550.103839, Length of new message queue: 0, Logical clock time: 33
+2025-03-05 14:22:31,118 - INFO - run_clock_cycle - Sent Message: the local clock time is 34 to machine 1, Global Time: 1741202551.118154, Logical clock time: 34
+2025-03-05 14:22:32,131 - INFO - run_clock_cycle - Sent Message: the local clock time is 35 to machine 1 and 2, Global Time: 1741202552.131867, Logical clock time: 35
+2025-03-05 14:22:33,143 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202553.1431239, Logical clock time: 36
+2025-03-05 14:22:34,154 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202554.154006, Logical clock time: 37
+2025-03-05 14:22:35,165 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202555.165775, Logical clock time: 38
+2025-03-05 14:22:36,179 - INFO - run_clock_cycle - Received Message: the local clock time is 108, Global Time: 1741202556.179748, Length of new message queue: 0, Logical clock time: 39
+2025-03-05 14:22:37,192 - INFO - run_clock_cycle - Received Message: the local clock time is 39, Global Time: 1741202557.1921978, Length of new message queue: 0, Logical clock time: 40
+2025-03-05 14:22:38,209 - INFO - run_clock_cycle - Received Message: the local clock time is 115, Global Time: 1741202558.209666, Length of new message queue: 1, Logical clock time: 41
+2025-03-05 14:22:39,221 - INFO - run_clock_cycle - Received Message: the local clock time is 116, Global Time: 1741202559.2215528, Length of new message queue: 2, Logical clock time: 42
+2025-03-05 14:22:40,237 - INFO - run_clock_cycle - Received Message: the local clock time is 117, Global Time: 1741202560.237494, Length of new message queue: 2, Logical clock time: 43
+2025-03-05 14:22:41,254 - INFO - run_clock_cycle - Received Message: the local clock time is 119, Global Time: 1741202561.2548192, Length of new message queue: 2, Logical clock time: 44
+2025-03-05 14:22:42,268 - INFO - run_clock_cycle - Received Message: the local clock time is 120, Global Time: 1741202562.268001, Length of new message queue: 1, Logical clock time: 45
+2025-03-05 14:22:43,279 - INFO - run_clock_cycle - Received Message: the local clock time is 124, Global Time: 1741202563.279614, Length of new message queue: 1, Logical clock time: 46
+2025-03-05 14:22:44,292 - INFO - run_clock_cycle - Received Message: the local clock time is 130, Global Time: 1741202564.2927392, Length of new message queue: 1, Logical clock time: 47
+2025-03-05 14:22:45,305 - INFO - run_clock_cycle - Received Message: the local clock time is 131, Global Time: 1741202565.3052092, Length of new message queue: 0, Logical clock time: 48
+2025-03-05 14:22:46,324 - INFO - run_clock_cycle - Received Message: the local clock time is 137, Global Time: 1741202566.324016, Length of new message queue: 0, Logical clock time: 49
+2025-03-05 14:22:47,332 - INFO - run_clock_cycle - Received Message: the local clock time is 142, Global Time: 1741202567.3324878, Length of new message queue: 0, Logical clock time: 50
+2025-03-05 14:22:48,351 - INFO - run_clock_cycle - Received Message: the local clock time is 144, Global Time: 1741202568.351468, Length of new message queue: 0, Logical clock time: 51
+2025-03-05 14:22:49,370 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202569.3704162, Logical clock time: 52
+2025-03-05 14:22:50,374 - INFO - run_clock_cycle - Received Message: the local clock time is 151, Global Time: 1741202570.374301, Length of new message queue: 0, Logical clock time: 53
+2025-03-05 14:22:51,396 - INFO - run_clock_cycle - Received Message: the local clock time is 152, Global Time: 1741202571.3960588, Length of new message queue: 1, Logical clock time: 54
+2025-03-05 14:22:52,411 - INFO - run_clock_cycle - Received Message: the local clock time is 154, Global Time: 1741202572.411832, Length of new message queue: 2, Logical clock time: 55
+2025-03-05 14:22:53,425 - INFO - run_clock_cycle - Received Message: the local clock time is 155, Global Time: 1741202573.425923, Length of new message queue: 3, Logical clock time: 56
+2025-03-05 14:22:54,430 - INFO - run_clock_cycle - Received Message: the local clock time is 157, Global Time: 1741202574.430225, Length of new message queue: 2, Logical clock time: 57
+2025-03-05 14:22:55,446 - INFO - run_clock_cycle - Received Message: the local clock time is 158, Global Time: 1741202575.446076, Length of new message queue: 2, Logical clock time: 58
+2025-03-05 14:22:56,459 - INFO - run_clock_cycle - Received Message: the local clock time is 160, Global Time: 1741202576.4599009, Length of new message queue: 2, Logical clock time: 59
+2025-03-05 14:22:57,472 - INFO - run_clock_cycle - Received Message: the local clock time is 164, Global Time: 1741202577.472359, Length of new message queue: 2, Logical clock time: 60
+2025-03-05 14:22:58,484 - INFO - run_clock_cycle - Received Message: the local clock time is 167, Global Time: 1741202578.4847832, Length of new message queue: 2, Logical clock time: 61
+2025-03-05 14:22:59,499 - INFO - run_clock_cycle - Received Message: the local clock time is 169, Global Time: 1741202579.4995232, Length of new message queue: 2, Logical clock time: 62
+2025-03-05 14:23:00,507 - INFO - run_clock_cycle - Received Message: the local clock time is 173, Global Time: 1741202580.506973, Length of new message queue: 2, Logical clock time: 63
+2025-03-05 14:23:01,521 - INFO - run_clock_cycle - Received Message: the local clock time is 177, Global Time: 1741202581.521687, Length of new message queue: 2, Logical clock time: 64
+2025-03-05 14:23:02,534 - INFO - run_clock_cycle - Received Message: the local clock time is 180, Global Time: 1741202582.534273, Length of new message queue: 1, Logical clock time: 65
+2025-03-05 14:23:03,554 - INFO - run_clock_cycle - Received Message: the local clock time is 181, Global Time: 1741202583.55408, Length of new message queue: 0, Logical clock time: 66
+2025-03-05 14:23:04,567 - INFO - run_clock_cycle - Received Message: the local clock time is 66, Global Time: 1741202584.5672472, Length of new message queue: 1, Logical clock time: 67
+2025-03-05 14:23:05,573 - INFO - run_clock_cycle - Received Message: the local clock time is 192, Global Time: 1741202585.573478, Length of new message queue: 0, Logical clock time: 68
+2025-03-05 14:23:06,576 - INFO - run_clock_cycle - Received Message: the local clock time is 197, Global Time: 1741202586.576631, Length of new message queue: 0, Logical clock time: 69
+2025-03-05 14:23:07,589 - INFO - run_clock_cycle - Received Message: the local clock time is 199, Global Time: 1741202587.589186, Length of new message queue: 0, Logical clock time: 70
+2025-03-05 14:23:08,604 - INFO - run_clock_cycle - Sent Message: the local clock time is 71 to machine 2, Global Time: 1741202588.604823, Logical clock time: 71
+2025-03-05 14:23:09,616 - INFO - run_clock_cycle - Received Message: the local clock time is 205, Global Time: 1741202589.61684, Length of new message queue: 0, Logical clock time: 72
+2025-03-05 14:23:10,629 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202590.629091, Logical clock time: 73
+2025-03-05 14:23:11,638 - INFO - run_clock_cycle - Received Message: the local clock time is 211, Global Time: 1741202591.6386712, Length of new message queue: 0, Logical clock time: 74
+2025-03-05 14:23:12,645 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202592.645799, Logical clock time: 75
+2025-03-05 14:23:13,657 - INFO - run_clock_cycle - Sent Message: the local clock time is 76 to machine 1 and 2, Global Time: 1741202593.657152, Logical clock time: 76
+2025-03-05 14:23:14,664 - INFO - run_clock_cycle - Received Message: the local clock time is 221, Global Time: 1741202594.6647072, Length of new message queue: 0, Logical clock time: 77
+2025-03-05 14:23:15,677 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202595.677859, Logical clock time: 78
+2025-03-05 14:23:16,693 - INFO - run_clock_cycle - Received Message: the local clock time is 227, Global Time: 1741202596.693792, Length of new message queue: 0, Logical clock time: 79
+2025-03-05 14:23:17,706 - INFO - run_clock_cycle - Internal Update. Global Time: 1741202597.7067788, Logical clock time: 80
+2025-03-05 14:23:18,715 - INFO - run_clock_cycle - Received Message: the local clock time is 231, Global Time: 1741202598.715491, Length of new message queue: 0, Logical clock time: 81
+2025-03-05 14:23:19,723 - INFO - run_clock_cycle - Received Message: the local clock time is 235, Global Time: 1741202599.723464, Length of new message queue: 0, Logical clock time: 82
+2025-03-05 14:23:20,737 - INFO - run_clock_cycle - Received Message: the local clock time is 237, Global Time: 1741202600.737217, Length of new message queue: 0, Logical clock time: 83
+2025-03-05 14:23:21,758 - INFO - run_clock_cycle - Received Message: the local clock time is 239, Global Time: 1741202601.758085, Length of new message queue: 1, Logical clock time: 84
+2025-03-05 14:23:22,773 - INFO - run_clock_cycle - Received Message: the local clock time is 240, Global Time: 1741202602.772968, Length of new message queue: 2, Logical clock time: 85
+2025-03-05 14:23:23,788 - INFO - run_clock_cycle - Received Message: the local clock time is 242, Global Time: 1741202603.7882829, Length of new message queue: 2, Logical clock time: 86
+2025-03-05 14:23:24,802 - INFO - run_clock_cycle - Received Message: the local clock time is 243, Global Time: 1741202604.8027258, Length of new message queue: 2, Logical clock time: 87
+2025-03-05 14:23:25,809 - INFO - run_clock_cycle - Received Message: the local clock time is 246, Global Time: 1741202605.8098428, Length of new message queue: 1, Logical clock time: 88
+2025-03-05 14:23:26,819 - INFO - run_clock_cycle - Received Message: the local clock time is 250, Global Time: 1741202606.8193028, Length of new message queue: 2, Logical clock time: 89
+2025-03-05 14:23:27,827 - INFO - run_clock_cycle - Received Message: the local clock time is 255, Global Time: 1741202607.8275268, Length of new message queue: 1, Logical clock time: 90
