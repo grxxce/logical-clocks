@@ -18,9 +18,10 @@ import re
 # MARK: Client Class
 class Client:
     """
-    The Client class creates our UI and the callbacks that make requests to the server.
+    The Client class controls the sending and receiving of messages from the other clients. 
+    It also handles the controlling of a process's logical clock. 
     """
-    def __init__(self, host, port, id):
+    def __init__(self, host, port, id, max_clock_rate, event_probability_upper_range):
         '''
         Initialization preamble that occurs before clock:
         (1) Create network queue
@@ -48,10 +49,12 @@ class Client:
         self.logger = logging.getLogger(__name__)
 
         # (3) start running clock
-        self.clock_rate = random.randint(1, 6)
+        # Clock rate defaults to have the upper range of 6
+        self.clock_rate = random.randint(1, max_clock_rate)
         self.sleep_time = 1.0 / self.clock_rate
         self.logical_clock = 1
         self.running = True
+        self.event_probability_upper_range = event_probability_upper_range
         self.run_clock_cycle()
         
         
@@ -62,7 +65,6 @@ class Client:
         print("running clock now")
         while self.running:
             self._handle_get_inbox()
-            
 
             # If there are messages in the queue: 
             if self.message_q:
@@ -72,16 +74,15 @@ class Client:
                 if match:
                     local_clock_time = match.group('local_clock')
                     self.logical_clock = max(self.logical_clock, int(local_clock_time)) + 1
-                else:
-                    #todo: fix
-                    print("ERROR FIX THIS LOL")
+
                 self.logger.info(f"Received Message: {message.message.message}, Global Time: {time.time()}, Length of new message queue: {len(self.message_q)}, Logical clock time: {self.logical_clock}")
                 
             # If no messages in queue, probabilistically take another action.
             else:
                 print("Did not detect message. Creating an event.")
                 self.logical_clock += 1
-                event = random.randint(1, 10)
+                # Default upper range is 10
+                event = random.randint(1, self.event_probability_upper_range)
                 match event:
                     case 1:
                         message =  f"the local clock time is {self.logical_clock}"
@@ -141,12 +142,11 @@ class Client:
 
     def _handle_get_inbox(self):
         """
-        Sends a request to the server to update the user's pending messages inbox.
-        If the user has pending messages, this will find out and display them by calling upon the server
-        to update the user's inbox. It handles these responses in the form of a stream of Messages.
+        Sends a request to the server to retrieve the process's pending messages.
+        It handles these responses in the form of a stream of Messages.
         """
         try:
-            print("Send request to get pending messages and update inbox.")    
+            print("Send request to get pending messages.")    
             responses = self.stub.GetPendingMessage(service_pb2.PendingMessageRequest(username=self.current_user))
             for response in responses:
                 self.message_q.append(response)
@@ -194,6 +194,19 @@ def parse_arguments():
         help='Server id (default: 1)'    
     )
 
+    parser.add_argument(
+        '--max_clock_rate',
+        type=int,
+        default=6,
+        help='Max possible clock rate (default: 6)'  
+    )
+
+    parser.add_argument(
+        '--event_probability_upper_range',
+        type=int,
+        default=10,
+        help='Probability of sending a message as the upper range of the random prob. between 1 and this inputted number (default: 10)'  
+    )
 
     return parser.parse_args()
 
@@ -204,4 +217,6 @@ if __name__ == "__main__":
     port = args.port
     ip = args.ip
     id = args.id
-    client = Client(host=ip, port=port, id=id)
+    max_clock_rate = args.max_clock_rate
+    event_prob = args.event_probability_upper_range
+    client = Client(host=ip, port=port, id=id, max_clock_rate=max_clock_rate, event_probability_upper_range=event_prob)

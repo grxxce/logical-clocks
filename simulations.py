@@ -8,7 +8,7 @@ import shutil
 
 # MARK: Run Simulation
 
-def run_simulation(ip, port, duration, runs):
+def run_simulation(ip, port, duration, runs, max_clock_rate, event_probability_upper_range):
     """
     Begin the simulation by creating 3 separate processes that run on the server.
     Handle starting the processes at the same time, allow them to run for a set duration,
@@ -22,6 +22,9 @@ def run_simulation(ip, port, duration, runs):
         port: the port that the server and clients should use
         duration (int): the time that each run of the simulation should take in seconds
         runs (int): the number of times the simulation should be run
+        max_clock_rate (int): the maximum instructions that can be run per second
+        event_probability_upper_range (int): when determining the probability that an instruction will send a message, it is randomly
+                                             selected from a range of 1 to this number
 
     Outcome:
         In the results/ folder, each simulation should have its own unique log files from each process.
@@ -30,17 +33,17 @@ def run_simulation(ip, port, duration, runs):
 
     # List of commands to run the different processes
     commands = [
-        f'python Client/main.py --ip {ip} --port {port} --id 1',
-        f'python Client/main.py --ip {ip} --port {port} --id 2',
-        f'python Client/main.py --ip {ip} --port {port} --id 3'
+        f'python Client/main.py --ip {ip} --port {port} --id 1 --max_clock_rate {max_clock_rate} --event_probability_upper_range {event_probability_upper_range}',
+        f'python Client/main.py --ip {ip} --port {port} --id 2 --max_clock_rate {max_clock_rate} --event_probability_upper_range {event_probability_upper_range}',
+        f'python Client/main.py --ip {ip} --port {port} --id 3 --max_clock_rate {max_clock_rate} --event_probability_upper_range {event_probability_upper_range}'
     ]
-
-    # Start the server and wait for the server to begin.
-    server_cmd = subprocess.Popen(f'python Server/main.py --ip {ip} --port {port}', shell=True)
-    time.sleep(3)
 
     # We want the simulation to run for the inputted number of times.
     for run_number in range(runs):
+        # Start the server and wait for the server to begin.
+        server_cmd = subprocess.Popen(f'python Server/main.py --ip {ip} --port {port}', shell=True)
+        time.sleep(3)
+
         # Start the processes
         processes = []
         for cmd in commands:
@@ -66,8 +69,9 @@ def run_simulation(ip, port, duration, runs):
         print(f'Completed run number: {run_number}')
         time.sleep(3)
 
-    # Kill the server to end the simulations.
-    server_cmd.send_signal(signal.SIGINT)
+        # Kill the server to end the simulations.
+        server_cmd.send_signal(signal.SIGINT)
+        server_cmd.wait()
 
 
 def handle_logfiles(run_number):
@@ -151,6 +155,20 @@ def parse_arguments():
         help='Number of runs of the simulation (default: 5)'    
     )
 
+    parser.add_argument(
+        '--max_clock_rate',
+        type=int,
+        default=6,
+        help='Max clock rate (default: 6)'  
+    )
+
+    parser.add_argument(
+        '--event_probability_upper_range',
+        type=int,
+        default=10,
+        help='Probability of sending a message as the upper range of the random prob. between 1 and this inputted number (default: 10)'  
+    )
+
     return parser.parse_args()
 
 # MARK: MAIN
@@ -161,7 +179,17 @@ if __name__ == "__main__":
     port = args.port
     duration = args.duration
     runs = args.runs
-    run_simulation(ip, port, duration, runs)
+    max_clock_rate = args.max_clock_rate
+    event_prob = args.event_probability_upper_range
+    run_simulation(ip, port, duration, runs, max_clock_rate, event_prob)
 
-# Example Usage:
+
+# MARK: Original Usage
 # python simulations.py --ip 127.0.0.1 --port 5001 --duration 90 --runs 5
+
+# MARK: Variation Usages
+# Increase the variation of clock rates
+# python simulations.py --ip 127.0.0.1 --port 5001 --duration 90 --runs 5 --max_clock_rate 30
+
+# Increase the probability of sending a message on a clock cycle 
+# python simulations.py --ip 127.0.0.1 --port 5001 --duration 90 --runs 5 --event_probability_upper_range 5

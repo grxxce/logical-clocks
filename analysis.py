@@ -314,3 +314,4 @@ if __name__ == "__main__":
 
 # Example Usage:
 # python analysis.py
+# python analysis.py --runs 5
