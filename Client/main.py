@@ -81,12 +81,9 @@ class Client:
             else:
                 print("Did not detect message. Creating an event.")
                 self.logical_clock += 1
-<<<<<<< HEAD
                 # Default upper range is 10
                 event = random.randint(1, self.event_probability_upper_range)
-=======
-                event = random.randint(1, 5)
->>>>>>> 117ba09 (logical clock patch)
+                
                 match event:
                     case 1:
                         message =  f"the local clock time is {self.logical_clock}"
